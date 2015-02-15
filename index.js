@@ -19,10 +19,16 @@ const getCurrentState = function() {
     return state.current;
 };
 
-const dereferenceKeyPath = keyPath => {
-    // TODO: This needs to throw an exception if the path doesn't exist
-    const path = keyPath.split(".");
-    return state.cursor(keyPath.split(".")).deref();
+const dereference = pathOrGetter => {
+    if (typeof(pathOrGetter) == "string") {
+        // TODO: This needs to throw an exception if the path doesn't exist
+        const path = pathOrGetter.split(".");
+        return state.cursor(path).deref();
+    } else if (typeof(pathOrGetter) == "function" && pathOrGetter.isPureFluxGetter) {
+        return pathOrGetter();
+    } else {
+        throw new Error("Illegal argument type for this Getter");
+    }
 };
 
 const memoize = function(fn) {
@@ -50,7 +56,7 @@ const Getter = function(...args) {
         if (typeof(keyPath) !== "string") throw new Error("A single-argument Getter takes a string as its argument.");
 
         // Set the getter function and the single dependency
-        resultFn = (() => dereferenceKeyPath(keyPath));
+        resultFn = (() => dereference(keyPath));
         dependencies = [ keyPath ];
     } else {
         // Split the arguments into dependency injection and function
@@ -58,16 +64,7 @@ const Getter = function(...args) {
         if (typeof(fn) !== "function") throw new Error("A multi-argument Getter takes a function as its last argument.");
 
         // Go through each path/Getter resolving them into values
-        var values = pathsOrGetters.map(pathOrGetter => {
-            if (typeof(pathOrGetter) == "string") {
-                dependencies = [ keyPath ];
-                return dereferenceKeyPath(pathOrGetter);
-            } else if (typeof(pathOrGetter) == "function" && pathOrGetter.isPureFluxGetter) {
-                return pathOrGetter();
-            } else {
-                throw new Error("Illegal argument type for this Getter");
-            }
-        });
+        var values = pathsOrGetters.map(dereference);
 
         // Construct the dependencies, ironing out any nested arrays (not sure why flatMap doesn't work here)
         dependencies = pathsOrGetters
@@ -82,7 +79,7 @@ const Getter = function(...args) {
     // This is so that we can identify something as a Getter
     resultFn.isPureFluxGetter = true;
 
-    // Set the dependencies for observers
+    // Set the dependencies for observers TODO: this should really be an ES6 Set
     resultFn.dependencies = dependencies;
 
     // This is the chainable memoize function
@@ -91,7 +88,30 @@ const Getter = function(...args) {
     return resultFn;
 };
 
-const stateBindings = null;
+/*const stateBindings = function(bindingsObj) {
+
+    const bindings = Immutable.Map(bindingsObj);
+
+    const fetchFromStore = function(binding) {
+        const { store, fetch } = descriptor;
+        return fetch.call(this, store, null)
+    };
+
+    return {
+        getInitialState() {
+
+        },
+
+        componentDidMount() {
+
+        },
+
+        componentWillUnmount() {
+
+        }
+    };
+
+};*/
 
 
 /*function Store() {
