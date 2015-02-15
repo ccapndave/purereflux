@@ -41,27 +41,39 @@ const memoize = function(fn) {
  * @constructor
  */
 const Getter = function(...args) {
-    let resultFn;
+    let resultFn, dependencies;
 
     if (args.length == 0) {
         throw new Error("A Getter needs at least one argument.");
     } else if (args.length == 1) {
         let keyPath = args[0];
         if (typeof(keyPath) !== "string") throw new Error("A single-argument Getter takes a string as its argument.");
+
+        // Set the getter function and the single dependency
         resultFn = (() => dereferenceKeyPath(keyPath));
+        dependencies = [ keyPath ];
     } else {
         // Split the arguments into dependency injection and function
-        let fn = args.pop(), pathsOrGetters = args;
+        let fn = args.pop(), pathsOrGetters = Immutable.List(args);
         if (typeof(fn) !== "function") throw new Error("A multi-argument Getter takes a function as its last argument.");
 
         // Go through each path/Getter resolving them into values
         var values = pathsOrGetters.map(pathOrGetter => {
             if (typeof(pathOrGetter) == "string") {
+                dependencies = [ keyPath ];
                 return dereferenceKeyPath(pathOrGetter);
             } else if (typeof(pathOrGetter) == "function" && pathOrGetter.isPureFluxGetter) {
                 return pathOrGetter();
+            } else {
+                throw new Error("Illegal argument type for this Getter");
             }
         });
+
+        // Construct the dependencies, ironing out any nested arrays (not sure why flatMap doesn't work here)
+        dependencies = pathsOrGetters
+            .map(pathOrGetter => typeof(pathOrGetter) == "string" ? pathOrGetter : Immutable.List(pathOrGetter.dependencies))
+            .flatten()
+            .toArray();
 
         // Finally return a function that calls fn with these arguments.  'this' inside getters is (currently) set to null to discourage us from trying to use it!
         resultFn = (() => fn.call(null, ...values));
@@ -69,6 +81,9 @@ const Getter = function(...args) {
 
     // This is so that we can identify something as a Getter
     resultFn.isPureFluxGetter = true;
+
+    // Set the dependencies for observers
+    resultFn.dependencies = dependencies;
 
     // This is the chainable memoize function
     resultFn.memoize = memoize;
