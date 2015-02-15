@@ -2,29 +2,36 @@ import should from 'should'
 
 import * as PureReflux from '../index'
 
-const initialState = {
-    name: "Dave",
-    feet: [ "left", "right" ],
-    hair: {
-        length: "short",
-        colour: "black"
-    }
-};
+let initialState, store, getHairColour, stateBindings;
 
-describe("stateBindings", () => {
-    const store = PureReflux.createStore('exerciseStore', {
+beforeEach(() => {
+    PureReflux.clearState();
+
+    initialState = {
+        name: "Dave",
+        feet: [ "left", "right" ],
+        hair: {
+            length: "short",
+            colour: "black"
+        }
+    };
+
+    store = PureReflux.createStore('exerciseStore', {
         getInitialState() {
             return initialState;
         }
     });
 
-    const getHairColour = PureReflux.Getter('exerciseStore.hair.colour', colour => colour);
+    getHairColour = PureReflux.Getter('exerciseStore.hair.colour', colour => colour);
 
-    const stateBindings = PureReflux.stateBindings({
+    stateBindings = PureReflux.stateBindings({
         name: 'exerciseStore.name',
         hairLengthAndColour: PureReflux.Getter('exerciseStore.hair.length', getHairColour, (length, colour) => `I have ${length} ${colour} hair`),
         hairColour: getHairColour
     });
+});
+
+describe("stateBindings", () => {
 
     it("should have the correct initial state", () => {
         stateBindings.getInitialState().should.eql({
@@ -67,6 +74,22 @@ describe("stateBindings", () => {
         PureReflux.getState().reference(["exerciseStore", "hair", "colour"]).cursor().update(() => "white");
 
         stateWasChanged.should.be.True
+    });
+
+    it("should remove listeners when the component is unmounted", () => {
+        stateBindings.componentDidMount();
+
+        let stateWasChanged = false;
+
+        stateBindings.setState = (state) => {
+            stateWasChanged = true;
+        };
+
+        stateBindings.componentWillUnmount();
+
+        PureReflux.getState().reference(["exerciseStore", "hair", "colour"]).cursor().update(() => "white");
+
+        stateWasChanged.should.be.False
     });
 
 });

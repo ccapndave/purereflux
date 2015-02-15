@@ -23,7 +23,6 @@ describe("getters", () => {
         (() => PureReflux.Getter(100)).should.throw();
         (() => PureReflux.Getter(["arrays", "are", "not", "allowed"])).should.throw();
         (() => PureReflux.Getter("the second argument", "should be a function")).should.throw();
-        (() => PureReflux.Getter(["arrays", "are", "not", "allowed"], () => {})).should.throw();
     });
 
     it("should retrieve the property from the global state", () => {

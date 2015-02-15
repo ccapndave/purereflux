@@ -5,6 +5,8 @@ import immstruct from 'immstruct'
 // This is the global application state
 let state = immstruct({});
 
+const clearState = () => state = immstruct({});
+
 const createStore = function(storeKey, definition) {
     // Start with a normal Reflux store
     let store = Reflux.createStore({});
@@ -15,15 +17,22 @@ const createStore = function(storeKey, definition) {
     return store;
 };
 
-const getCurrentState = function() {
-    return state.current;
-};
+const getState = () => state;
 
+const getCurrentState = () => state.current;
+
+const keyPathToKeyArray = (keyPath) => keyPath.split(".");
+
+/**
+ * Turn a path or Getter into a real value
+ *
+ * @param pathOrGetter
+ * @returns {*}
+ */
 const dereference = pathOrGetter => {
     if (typeof(pathOrGetter) == "string") {
         // TODO: This needs to throw an exception if the path doesn't exist
-        const path = pathOrGetter.split(".");
-        return state.cursor(path).deref();
+        return state.cursor(keyPathToKeyArray(pathOrGetter)).deref();
     } else if (typeof(pathOrGetter) == "function" && pathOrGetter.isPureFluxGetter) {
         return pathOrGetter();
     } else {
@@ -63,9 +72,6 @@ const Getter = function(...args) {
         let fn = args.pop(), pathsOrGetters = Immutable.List(args);
         if (typeof(fn) !== "function") throw new Error("A multi-argument Getter takes a function as its last argument.");
 
-        // Go through each path/Getter resolving them into values
-        var values = pathsOrGetters.map(dereference);
-
         // Construct the dependencies, ironing out any nested arrays (not sure why flatMap doesn't work here)
         dependencies = pathsOrGetters
             .map(pathOrGetter => typeof(pathOrGetter) == "string" ? pathOrGetter : Immutable.List(pathOrGetter.dependencies))
@@ -73,7 +79,13 @@ const Getter = function(...args) {
             .toArray();
 
         // Finally return a function that calls fn with these arguments.  'this' inside getters is (currently) set to null to discourage us from trying to use it!
-        resultFn = (() => fn.call(null, ...values));
+        resultFn = (() => {
+            // Go through each path/Getter resolving them into values
+            let values = pathsOrGetters.map(dereference);
+
+            // And return a function with these values applied
+            return fn.call(null, ...values);
+        });
     }
 
     // This is so that we can identify something as a Getter
@@ -88,31 +100,49 @@ const Getter = function(...args) {
     return resultFn;
 };
 
-/*const stateBindings = function(bindingsObj) {
+const stateBindings = function(bindingsObj) {
+
+    let unobservers = Immutable.List();
 
     const bindings = Immutable.Map(bindingsObj);
 
-    const fetchFromStore = function(binding) {
-        const { store, fetch } = descriptor;
-        return fetch.call(this, store, null)
-    };
-
     return {
         getInitialState() {
-
+            return bindings.map(dereference).toJS();
         },
 
         componentDidMount() {
+            // This is a slightly confusing algorithm that gathers up the state properties that need to be updated per
+            // path (so that we only need one observer per path).
+            let pathsMap = bindings
+                .map(binding => typeof(binding) == "string" ? [ binding ] : binding.dependencies)
+                .reduce((acc, dependencies, stateProperty) => {
+                    dependencies.forEach(dependency => {
+                        let set = (acc.get(dependency) || Immutable.Set()).add(stateProperty);
+                        acc = acc.set(dependency, set);
+                    });
+                    return acc;
+                }, Immutable.Map());
 
+            // Observer each of the keyPaths
+            unobservers = pathsMap.map((stateProperties, keyPath) => {
+                return state.reference(keyPathToKeyArray(keyPath)).observe(() => {
+                    // I want to get a map of stateProperties to values to pass to setState
+                    const newStates = stateProperties.reduce((acc, stateProperty) => {
+                        return acc.set(stateProperty, dereference(bindings.get(stateProperty)))
+                    }, Immutable.Map()).toJS();
+
+                    this.setState(newStates);
+                });
+            }).toList();
         },
 
         componentWillUnmount() {
-
+            unobservers.forEach(unobserver => unobserver());
         }
     };
 
-};*/
-
+};
 
 /*function Store() {
     var i=0, arr;
@@ -131,4 +161,4 @@ const Getter = function(...args) {
     }
 }*/
 
-export { createStore, Getter, stateBindings, getCurrentState }
+export { createStore, Getter, stateBindings, clearState, getCurrentState, getState }
