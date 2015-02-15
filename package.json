@@ -1,0 +1,36 @@
+{
+  "name": "purereflux",
+  "version": "0.0.1",
+  "description": "Pure functional extensions to Reflux",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ccapndave/purereflux.git"
+  },
+  "keywords": [
+    "flux",
+    "reflux",
+    "functional",
+    "react"
+  ],
+  "author": "Dave Keen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ccapndave/purereflux/issues"
+  },
+  "homepage": "https://github.com/ccapndave/purereflux",
+  "dependencies": {
+    "immstruct": "^1.4.0",
+    "immutable": "^3.6.2",
+    "reflux": "^0.2.5"
+  },
+  "devDependencies": {
+    "chai": "^2.0.0",
+    "mocha": "^2.1.0",
+    "mocha-traceur": "^2.1.0",
+    "should": "^5.0.0"
+  }
+}
