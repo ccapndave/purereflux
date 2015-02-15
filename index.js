@@ -19,7 +19,11 @@ const getCurrentState = function() {
     return state.current;
 };
 
-const dereferenceKeyPath = keyPath => state.cursor(keyPath.split(".")).deref();
+const dereferenceKeyPath = keyPath => {
+    // TODO: This needs to throw an exception if the path doesn't exist
+    const path = keyPath.split(".");
+    return state.cursor(keyPath.split(".")).deref();
+};
 
 const memoize = function(fn) {
     console.log(this);
@@ -37,31 +41,6 @@ const memoize = function(fn) {
  * @constructor
  */
 const Getter = function(...args) {
-    /*switch (args.length) {
-        case 0:
-            throw new Error("A Getter needs at least one argument.");
-        case 1:
-            let keyPath = args[0];
-            if (typeof(keyPath) !== "string") throw new Error("A single-argument Getter takes a string as its argument.");
-            return () => dereferenceKeyPath(keyPath);
-        default:
-            // Split the arguments into dependency injection and function
-            let fn = args.pop(), pathsOrGetters = args;
-            if (typeof(fn) !== "function") throw new Error("A multi-argument Getter takes a function as its last argument.");
-
-            // Go through each path/Getter resolving them into values
-            var values = pathsOrGetters.map(pathOrGetter => {
-                if (typeof(pathOrGetter) == "string") {
-                    return dereferenceKeyPath(pathOrGetter);
-                } else if (typeof(pathOrGetter) == "function") {
-                    console.dir(pathOrGetter === Getter);
-                }
-            });
-
-            // Finally return a function that calls fn with these arguments.  'this' inside getters is (currently) set to null
-            // to discourage us from trying to use it!
-            return fn.bind(null, ...values);
-    }*/
     let resultFn;
 
     if (args.length == 0) {
@@ -84,18 +63,15 @@ const Getter = function(...args) {
             }
         });
 
-        // Finally return a function that calls fn with these arguments.  'this' inside getters is (currently) set to null
-        // to discourage us from trying to use it!
-        resultFn = () => fn.bind(null, ...values);
+        // Finally return a function that calls fn with these arguments.  'this' inside getters is (currently) set to null to discourage us from trying to use it!
+        resultFn = (() => fn.call(null, ...values));
     }
 
-/*    let getterFunction = () => resultFn;
+    // This is so that we can identify something as a Getter
+    resultFn.isPureFluxGetter = true;
 
-    // Attach a few bits to the function
-    getterFunction.isPureFluxGetter = true;
-    getterFunction.memoize = memoize;
-
-    return getterFunction;*/
+    // This is the chainable memoize function
+    resultFn.memoize = memoize;
 
     return resultFn;
 };

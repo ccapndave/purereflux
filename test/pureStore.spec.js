@@ -47,7 +47,7 @@ describe("getters", () => {
         // First check it actually runs the function
         let functionWasRun = false;
         PureReflux.Getter('exerciseStore.name', name => { functionWasRun = true; })();
-        functionWasRun.should.be.True()
+        functionWasRun.should.be.True
     });
 
     it("should do path dependency injection into the function", () => {
@@ -61,6 +61,10 @@ describe("getters", () => {
     it("should do Getter dependency injection into the function", () => {
         const getName = PureReflux.Getter('exerciseStore.name');
         PureReflux.Getter(getName, name => name.should.equal("Dave"))();
+    });
+
+    it("should have this=null inside their functions", () => {
+        PureReflux.Getter('exerciseStore.name', function(name) { should.equal(this, null); })();
     });
 
 /*    it("should throw an exception if trying to get a non-existent property", () => {
