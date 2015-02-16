@@ -40,7 +40,6 @@ describe("getters", () => {
 
     it("should do path dependency injection into the function", () => {
         PureReflux.Getter(function() {
-			console.log(this);
 			return this.name.should.equal("Dave")
 		}).inject({ name: 'exerciseStore.name' })();
 
