@@ -74,6 +74,13 @@ describe("getters", () => {
         PureReflux.Getter(getNameAndHairLength, 'exerciseStore.hair.colour', () => {}).dependencies.should.eql(['exerciseStore.name', 'exerciseStore.hair.length', 'exerciseStore.hair.colour']);
     });
 
+    it("should pass extra parameters to the function", () => {
+        PureReflux.Getter('exerciseStore.name', (name, a, b) => {
+            a.should.eql(1);
+            b.should.eql(2);
+        })(1, 2);
+    });
+
     // TODO: Arrays don't seem to be working - add tests
 
 /*    it("should throw an exception if trying to get a non-existent property", () => {

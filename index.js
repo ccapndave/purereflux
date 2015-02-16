@@ -9,10 +9,40 @@ const clearState = () => state = immstruct({});
 
 const createStore = function(storeKey, definition) {
     // Start with a normal Reflux store
-    let store = Reflux.createStore({});
+    //let store = Reflux.createStore({});
+
+    let store = {};
+
+    // Figure out the listeners
 
     // Add the initial state to the global state with the given key.  Use a reference cursor to edit it in-place.
     state.reference().cursor().update(() => Immutable.fromJS({ [storeKey]: definition.getInitialState() }));
+
+    // Add the getters to the returned object as they can be accessed directly through the store singleton
+    Object.assign(store, definition.getters);
+
+    // Add the Reflux-style listener methods to the store
+    Object.assign(store, {
+        listenTo() {
+
+        },
+
+        listenToMany() {
+
+        }
+    });
+
+    // Implement the listenables property
+    /*if (this.listenables){
+        arr = [].concat(this.listenables);
+        for(;i < arr.length;i++){
+            this.listenToMany(arr[i]);
+        }
+    }*/
+
+    // Call init if it exists
+    if (this.init && typeof(this.init) === "function")
+        this.init();
 
     return store;
 };
@@ -21,6 +51,11 @@ const getState = () => state;
 
 const getCurrentState = () => state.current;
 
+/**
+ * Split a path up into an array that can be used with an immstruct cursor
+ *
+ * @param keyPath
+ */
 const keyPathToKeyArray = (keyPath) => keyPath.split(".");
 
 /**
@@ -30,10 +65,10 @@ const keyPathToKeyArray = (keyPath) => keyPath.split(".");
  * @returns {*}
  */
 const dereference = pathOrGetter => {
-    if (typeof(pathOrGetter) == "string") {
+    if (typeof(pathOrGetter) === "string") {
         // TODO: This needs to throw an exception if the path doesn't exist
         return state.cursor(keyPathToKeyArray(pathOrGetter)).deref();
-    } else if (typeof(pathOrGetter) == "function" && pathOrGetter.isPureFluxGetter) {
+    } else if (typeof(pathOrGetter) === "function" && pathOrGetter.isPureFluxGetter) {
         return pathOrGetter();
     } else {
         throw new Error("Illegal argument type for this Getter");
@@ -74,18 +109,21 @@ const Getter = function(...args) {
 
         // Construct the dependencies, ironing out any nested arrays (not sure why flatMap doesn't work here)
         dependencies = pathsOrGetters
-            .map(pathOrGetter => typeof(pathOrGetter) == "string" ? pathOrGetter : Immutable.List(pathOrGetter.dependencies))
+            .map(pathOrGetter => typeof(pathOrGetter) === "string" ? pathOrGetter : Immutable.List(pathOrGetter.dependencies))
             .flatten()
             .toArray();
 
         // Finally return a function that calls fn with these arguments.  'this' inside getters is (currently) set to null to discourage us from trying to use it!
-        resultFn = (() => {
+        resultFn = function() {
             // Go through each path/Getter resolving them into values
             let values = pathsOrGetters.map(dereference);
 
+            // Add any extra arguments
+            values = values.concat(Array.from(arguments));
+
             // And return a function with these values applied
             return fn.call(null, ...values);
-        });
+        };
     }
 
     // This is so that we can identify something as a Getter
@@ -115,7 +153,7 @@ const stateBindings = function(bindingsObj) {
             // This is a slightly confusing algorithm that gathers up the state properties that need to be updated per
             // path (so that we only need one observer per path).
             let pathsMap = bindings
-                .map(binding => typeof(binding) == "string" ? [ binding ] : binding.dependencies)
+                .map(binding => typeof(binding) === "string" ? [ binding ] : binding.dependencies)
                 .reduce((acc, dependencies, stateProperty) => {
                     dependencies.forEach(dependency => {
                         let set = (acc.get(dependency) || Immutable.Set()).add(stateProperty);
@@ -143,22 +181,5 @@ const stateBindings = function(bindingsObj) {
     };
 
 };
-
-/*function Store() {
-    var i=0, arr;
-    this.subscriptions = [];
-    this.emitter = new _.EventEmitter();
-    this.eventLabel = "change";
-    bindMethods(this, definition);
-    if (this.init && _.isFunction(this.init)) {
-        this.init();
-    }
-    if (this.listenables){
-        arr = [].concat(this.listenables);
-        for(;i < arr.length;i++){
-            this.listenToMany(arr[i]);
-        }
-    }
-}*/
 
 export { createStore, Getter, stateBindings, clearState, getCurrentState, getState }
