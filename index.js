@@ -76,66 +76,16 @@ const dereference = pathOrGetter => {
 };
 
 /**
- * A getter returns a function that can be called to get a value.  There are two forms of the Getter function:
+ * A Getter returns a function that can be invoked to get a value.  There are two forms of the Getter function:
  *
  * Getter(path): this returns a function that gets the value at path
- * Getter(path1, path2, function(valueAtPath1, valueAtPath2) { return value(); }): this returns a function that
- * gets the value returned by the function, with dependency injection for its parameters.  Note that path1 and
- * path2 can either be paths or other Getters.
+ * Getter(function() { return value; }): this returns a function that gets the value returned by the function.
  *
  * @returns {Function}
  * @constructor
  */
-const GetterOLD = function(...args) {
-    let resultFn, dependencies;
-
-    if (args.length == 0) {
-        throw new Error("A Getter needs at least one argument.");
-    } else if (args.length == 1) {
-        let keyPath = args[0];
-        if (typeof(keyPath) !== "string") throw new Error("A single-argument Getter takes a string as its argument.");
-
-        // Set the getter function and the single dependency
-        resultFn = (() => dereference(keyPath));
-        dependencies = [ keyPath ];
-    } else {
-        // Split the arguments into dependency injection and function
-        let fn = args.pop(), pathsOrGetters = Immutable.List(args);
-        if (typeof(fn) !== "function") throw new Error("A multi-argument Getter takes a function as its last argument.");
-
-        // Construct the dependencies, ironing out any nested arrays (not sure why flatMap doesn't work here)
-        dependencies = pathsOrGetters
-            .map(pathOrGetter => typeof(pathOrGetter) === "string" ? pathOrGetter : Immutable.List(pathOrGetter.dependencies))
-            .flatten()
-            .toArray();
-
-        // Finally return a function that calls fn with these arguments.  'this' inside getters is (currently) set to null to discourage us from trying to use it!
-        resultFn = function() {
-            // Go through each path/Getter resolving them into values
-            let values = pathsOrGetters.map(dereference);
-
-            // Add any extra arguments
-            values = values.concat(Array.from(arguments));
-
-            // And return a function with these values applied
-            return fn.call(null, ...values);
-        };
-    }
-
-    // This is so that we can identify something as a Getter
-    resultFn.isPureFluxGetter = true;
-
-    // Set the dependencies for observers TODO: this should really be an ES6 Set
-    resultFn.dependencies = dependencies;
-
-    // This is the chainable memoize function
-    resultFn.memoize = memoize;
-
-    return resultFn;
-};
-
 const Getter = function(fn) {
-	let resultFn, dependencies;
+	let resultFn;
 
 	if (arguments.length !== 1)
 		throw new Error("A Getter takes exactly one argument.");
@@ -145,7 +95,7 @@ const Getter = function(fn) {
 		resultFn = (() => dereference(fn));
 
 		// Set the path as a dependency
-		resultFn.dependencies = fn;
+		resultFn.dependencies = [ fn ];
 	} else if (typeof(fn) === "function") {
 		// Otherwise we just want to call the function that was passed in, passing on any arguments and parent context (which can be changed by .inject).
 		resultFn = (function() {
@@ -168,20 +118,32 @@ const Getter = function(fn) {
 };
 
 /**
- * @param deps An object containing a map of injection points to paths (string) and Getters
+ * This can be chained onto a Getter in order to provide dependency injection into its context.
  *
+ * @param deps An object containing a map of injection points to paths (string) and Getters
  * @returns {inject}
  */
 const inject = function(deps) {
 	// The context is the Getter this is chained to
 	let getter = this;
+	deps = Immutable.Map(deps);
 
 	// I want to return a new function that when called first retrieves the dependencies, then calls the original function
 	// with those dependencies as its context.
-	return function() {
-		let context = Immutable.Map(deps).map(dereference).toJS();
+	let newGetter = function() {
+		let context = deps.map(dereference).toJS();
 		return getter.apply(context, arguments);
 	};
+
+	// Copy over the properties
+	Object.assign(newGetter, getter);
+
+	// Update the dependencies
+	newGetter.dependencies = deps.map(dep => typeof(dep) === "string" ? dep : Immutable.List(dep.dependencies))
+			.flatten()
+			.toArray();
+
+	return newGetter;
 }
 
 /**
