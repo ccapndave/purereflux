@@ -4,6 +4,7 @@ import * as PureReflux from '../index'
 
 let initialState, store, getHairColour, stateBindings;
 
+/*
 beforeEach(() => {
     PureReflux.clearState();
 
@@ -22,11 +23,11 @@ beforeEach(() => {
         }
     });
 
-    getHairColour = PureReflux.Getter('exerciseStore.hair.colour', colour => colour);
+    getHairColour = PureReflux.Getter(() => this.colour).inject({ colour: 'exerciseStore.hair.colour' });
 
     stateBindings = PureReflux.stateBindings({
         name: 'exerciseStore.name',
-        hairLengthAndColour: PureReflux.Getter('exerciseStore.hair.length', getHairColour, (length, colour) => `I have ${length} ${colour} hair`),
+        hairLengthAndColour: PureReflux.Getter(() => `I have ${this.length} ${this.colour} hair`).inject({ length: 'exerciseStore.hair.length', colour: getHairColour }),
         hairColour: getHairColour
     });
 });
@@ -93,3 +94,4 @@ describe("stateBindings", () => {
     });
 
 });
+*/

@@ -22,36 +22,37 @@ describe("getters", () => {
         (() => PureReflux.Getter()).should.throw();
         (() => PureReflux.Getter(100)).should.throw();
         (() => PureReflux.Getter(["arrays", "are", "not", "allowed"])).should.throw();
-        (() => PureReflux.Getter("the second argument", "should be a function")).should.throw();
     });
+
 
     it("should retrieve the property from the global state", () => {
         PureReflux.Getter('exerciseStore.name')().should.equal("Dave");
         PureReflux.Getter('exerciseStore.hair.length')().should.equal("short");
     });
 
-    it("should run their function", () => {
+
+/*    it("should run their function", () => {
         // First check it actually runs the function
         let functionWasRun = false;
-        PureReflux.Getter('exerciseStore.name', name => { functionWasRun = true; })();
+        PureReflux.Getter(() => { functionWasRun = true; }).inject({ name: 'exerciseStore.name' })();
         functionWasRun.should.be.True
-    });
+    });*/
+
 
     it("should do path dependency injection into the function", () => {
-        PureReflux.Getter('exerciseStore.name', name => name.should.equal("Dave"))();
-        PureReflux.Getter('exerciseStore.name', 'exerciseStore.hair.length', (name, hairLength) => {
-            name.should.equal("Dave");
-            hairLength.should.equal("short");
-        })();
-    });
+        PureReflux.Getter(function() {
+			return this.name.should.equal("Dave")
+		}).inject({ name: 'exerciseStore.name' })();
 
+        PureReflux.Getter(function() {
+            this.name.should.equal("Dave");
+            this.hairLength.should.equal("short");
+        }).inject({ name: 'exerciseStore.name', hairLength: 'exerciseStore.hair.length' })();
+    });
+	/*
     it("should do Getter dependency injection into the function", () => {
         const getName = PureReflux.Getter('exerciseStore.name');
-        PureReflux.Getter(getName, name => name.should.equal("Dave"))();
-    });
-
-    it("should have this=null inside their functions", () => {
-        PureReflux.Getter('exerciseStore.name', function(name) { should.equal(this, null); })();
+        PureReflux.Getter(() => this.name.should.equal("Dave")).inject({ name: getName })();
     });
 
     it("should have a valid dependency property for a single path", () => {
@@ -59,19 +60,19 @@ describe("getters", () => {
     });
 
     it("should have a valid dependency property for a multiple paths", () => {
-        PureReflux.Getter('exerciseStore.name', 'exerciseStore.hair.length', () => {}).dependencies.should.eql(['exerciseStore.name', 'exerciseStore.hair.length']);
+        PureReflux.Getter(() => {}).inject({ name: 'exerciseStore.name', hairLength: 'exerciseStore.hair.length'}).dependencies.should.eql(['exerciseStore.name', 'exerciseStore.hair.length']);
     });
 
     it("should have valid dependency properties for one level of composed getters", () => {
         const getName = PureReflux.Getter('exerciseStore.name');
-        PureReflux.Getter(getName, 'exerciseStore.hair.length', () => {}).dependencies.should.eql(['exerciseStore.name', 'exerciseStore.hair.length']);
+        PureReflux.Getter(() => {}).inject({ name: getName, hairLength: 'exerciseStore.hair.length'}).dependencies.should.eql(['exerciseStore.name', 'exerciseStore.hair.length']);
     });
 
     it("should have valid dependency properties for two levels of composed getters", () => {
         const getName = PureReflux.Getter('exerciseStore.name');
-        const getNameAndHairLength = PureReflux.Getter(getName, 'exerciseStore.hair.length', () => {});
+        const getNameAndHairLength = PureReflux.Getter('exerciseStore.hair.length', () => {}).inject({ name: getName });
 
-        PureReflux.Getter(getNameAndHairLength, 'exerciseStore.hair.colour', () => {}).dependencies.should.eql(['exerciseStore.name', 'exerciseStore.hair.length', 'exerciseStore.hair.colour']);
+        PureReflux.Getter(() => {}).inject({ nameAndHairLength: getNameAndHairLength, hairColour: 'exerciseStore.hair.colour' }).dependencies.should.eql(['exerciseStore.name', 'exerciseStore.hair.length', 'exerciseStore.hair.colour']);
     });
 
     it("should pass extra parameters to the function", () => {
@@ -80,6 +81,7 @@ describe("getters", () => {
             b.should.eql(2);
         })(1, 2);
     });
+    */
 
     // TODO: Arrays don't seem to be working - add tests
 

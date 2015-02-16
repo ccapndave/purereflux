@@ -75,10 +75,6 @@ const dereference = pathOrGetter => {
     }
 };
 
-const memoize = function(fn) {
-    console.log(this);
-};
-
 /**
  * A getter returns a function that can be called to get a value.  There are two forms of the Getter function:
  *
@@ -90,7 +86,7 @@ const memoize = function(fn) {
  * @returns {Function}
  * @constructor
  */
-const Getter = function(...args) {
+const GetterOLD = function(...args) {
     let resultFn, dependencies;
 
     if (args.length == 0) {
@@ -138,8 +134,63 @@ const Getter = function(...args) {
     return resultFn;
 };
 
-const stateBindings = function(bindingsObj) {
+const Getter = function(fn) {
+	let resultFn, dependencies;
 
+	if (arguments.length !== 1)
+		throw new Error("A Getter takes exactly one argument.");
+
+	if (typeof(fn) === "string") {
+		// If we are passed a single path then return a function that simply dereferences it
+		resultFn = (() => dereference(fn));
+
+		// Set the path as a dependency
+		resultFn.dependencies = fn;
+	} else if (typeof(fn) === "function") {
+		// Otherwise we just want to call the function that was passed in, passing on any arguments and parent context (which can be changed by .inject).
+		resultFn = (function() {
+			return fn.apply(this, arguments);
+		});
+	} else {
+		throw new Error("A Getter must take a path string or a function as its only argument.");
+	}
+
+	// This lets us identify something as a Getter
+	resultFn.isPureFluxGetter = true;
+
+	// This is the chainable injection function
+	resultFn.inject = inject;
+
+	// This is the chainable memoize function
+	resultFn.memoize = memoize;
+
+	return resultFn;
+};
+
+/**
+ * @param deps An object containing a map of injection points to paths (string) and Getters
+ *
+ * @returns {inject}
+ */
+const inject = function(deps) {
+	// The context is the Getter this is chained to
+	let getter = this;
+
+	// I want to return a new function that when called first retrieves the dependencies, then calls the original function
+	// with those dependencies as its context.
+	return function() {
+		let context = Immutable.Map(deps).map(dereference).toJS();
+		return getter.apply(context, arguments);
+	};
+}
+
+/**
+ * A React mixin to link state paths or Getters to a React state.
+ *
+ * @param bindingsObj
+ * @returns {{getInitialState: Function, componentDidMount: Function, componentWillUnmount: Function}}
+ */
+const stateBindings = function(bindingsObj) {
     let unobservers = Immutable.List();
 
     const bindings = Immutable.Map(bindingsObj);
@@ -162,7 +213,7 @@ const stateBindings = function(bindingsObj) {
                     return acc;
                 }, Immutable.Map());
 
-            // Observer each of the keyPaths
+            // Observe each of the keyPaths
             unobservers = pathsMap.map((stateProperties, keyPath) => {
                 return state.reference(keyPathToKeyArray(keyPath)).observe(() => {
                     // I want to get a map of stateProperties to values to pass to setState
@@ -181,5 +232,10 @@ const stateBindings = function(bindingsObj) {
     };
 
 };
+
+const memoize = function(fn) {
+    console.log(this);
+};
+
 
 export { createStore, Getter, stateBindings, clearState, getCurrentState, getState }
