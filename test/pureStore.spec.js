@@ -16,7 +16,8 @@ describe("stores", () => {
 	beforeEach(() => {
 		PureReflux.clearState();
 
-		const store = PureReflux.createStore('exerciseStore', {
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
 			getInitialState() {
 				return initialState;
 			}
@@ -25,7 +26,8 @@ describe("stores", () => {
 
 	it("should call the init method on creation if there is one", () => {
 		let didCallInit = false;
-		const initStore = PureReflux.createStore('initStore', {
+		const initStore = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('initStore') ],
 			init() {
 				didCallInit = true;
 			}
@@ -34,7 +36,9 @@ describe("stores", () => {
 	});
 
 	it("should not throw an exception if getInitialState method is missing", () => {
-		PureReflux.createStore('emptyStore', {});
+		Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('emptyStore') ]
+		});
 	});
 
     it("should put their initial state into the global state under the store key", () => {
@@ -56,7 +60,9 @@ describe("store handlers", () => {
 
 	it("should fire on an action registered with listenTo", () => {
 		let actionWasCalled = false;
-		const store = PureReflux.createStore('exerciseStore', {
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
+
 			init() {
 				this.listenTo(action1, this.onAction1);
 			},
@@ -72,7 +78,9 @@ describe("store handlers", () => {
 	});
 
 	it("should pass arguments to the handler", () => {
-		const store = PureReflux.createStore('exerciseStore', {
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
+
 			init() {
 				this.listenTo(action1, this.onAction1);
 			},
@@ -89,7 +97,9 @@ describe("store handlers", () => {
 
 	it("should fire listeners with matching names using listenToMany", () => {
 		let action1WasCalled = false, action2WasCalled = false, action3WasCalled = false;
-		const store = PureReflux.createStore('exerciseStore', {
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
+
 			init() {
 				this.listenToMany({ action1, action2, action3 });
 			},
@@ -118,7 +128,9 @@ describe("store handlers", () => {
 
 	it("should fire listeners with matching names using listenables", () => {
 		let action1WasCalled = false, action2WasCalled = false, action3WasCalled = false;
-		const store = PureReflux.createStore('exerciseStore', {
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
+
 			listenables: { action1, action2, action3 },
 
 			onAction1() {
@@ -145,7 +157,9 @@ describe("store handlers", () => {
 
 	it("should pass a reference cursor into handlers as their context", () => {
 		let action1WasCalled = false;
-		const store = PureReflux.createStore('exerciseStore', {
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
+
 			listenables: { action1 },
 
 			onAction1() {

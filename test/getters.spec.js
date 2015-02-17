@@ -1,4 +1,5 @@
 import should from 'should'
+import Reflux from 'reflux'
 
 import * as PureReflux from '../index'
 
@@ -12,7 +13,8 @@ const initialState = {
 };
 
 describe("getters", () => {
-    const store = PureReflux.createStore('exerciseStore', {
+    const store = Reflux.createStore({
+		mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
         getInitialState() {
             return initialState;
         }

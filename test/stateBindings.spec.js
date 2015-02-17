@@ -1,4 +1,5 @@
 import should from 'should'
+import Reflux from 'reflux'
 
 import * as PureReflux from '../index'
 
@@ -16,7 +17,8 @@ beforeEach(() => {
         }
     };
 
-    store = PureReflux.createStore('exerciseStore', {
+    store = Reflux.createStore({
+		mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
         getInitialState() {
             return initialState;
         }
