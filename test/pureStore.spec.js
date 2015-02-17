@@ -87,11 +87,11 @@ describe("store handlers", () => {
 		action1.trigger(1, 2, "a");
 	});
 
-	/*it("should fire ***", () => {
+	it("should fire listeners with matching names using listenToMany", () => {
 		let action1WasCalled = false, action2WasCalled = false, action3WasCalled = false;
 		const store = PureReflux.createStore('exerciseStore', {
 			init() {
-				this.listenToMany([action1, action2, action3]);
+				this.listenToMany({ action1, action2, action3 });
 			},
 
 			onAction1() {
@@ -114,6 +114,50 @@ describe("store handlers", () => {
 		action1WasCalled.should.be.True;
 		action2WasCalled.should.be.True;
 		action3WasCalled.should.be.False;
-	});*/
+	});
+
+	it("should fire listeners with matching names using listenables", () => {
+		let action1WasCalled = false, action2WasCalled = false, action3WasCalled = false;
+		const store = PureReflux.createStore('exerciseStore', {
+			listenables: { action1, action2, action3 },
+
+			onAction1() {
+				action1WasCalled = true;
+			},
+
+			onAction2() {
+				action2WasCalled = true;
+			},
+
+			onWrongName() {
+				action3WasCalled = true;
+			}
+		});
+
+		action1.trigger();
+		action2.trigger();
+		action3.trigger();
+
+		action1WasCalled.should.be.True;
+		action2WasCalled.should.be.True;
+		action3WasCalled.should.be.False;
+	});
+
+	it("should pass a reference cursor into handlers as their context", () => {
+		let action1WasCalled = false;
+		const store = PureReflux.createStore('exerciseStore', {
+			listenables: { action1 },
+
+			onAction1() {
+				action1WasCalled = true;
+				console.log(this);
+			}
+		});
+
+		// Goddamn this is annoying...
+
+		action1.trigger();
+		action1WasCalled.should.be.True;
+	});
 
 });

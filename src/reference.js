@@ -5,7 +5,7 @@ import { getState } from '../index'
  *
  * @param keyPath
  */
-const keyPathToKeyArray = (keyPath) => keyPath.split(".");
+const keyPathToKeyArray = (keyPath) => keyPath ? keyPath.split(".") : null;
 
 /**
  * Turn a path or Getter into a real value
@@ -29,4 +29,9 @@ const dereference = (pathOrGetter) => {
  */
 const reference = (keyPath) => getState().reference(keyPathToKeyArray(keyPath));
 
-export { dereference, reference }
+/**
+ * Get a cursor for the given keyPath
+ */
+const cursor = (keyPath) => getState().cursor(keyPathToKeyArray(keyPath));
+
+export { dereference, reference, cursor }
