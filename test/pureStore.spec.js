@@ -1,5 +1,7 @@
 import Reflux from 'reflux'
 import should from 'should'
+import Immutable from 'immutable'
+import { getCurrentState } from '../src/appState'
 
 import * as PureReflux from '../index'
 
@@ -155,20 +157,92 @@ describe("store handlers", () => {
 		action3WasCalled.should.be.False;
 	});
 
-	it("should pass a reference cursor into handlers as their context", () => {
+	it("should pass a reference cursor pointing at the store state to handlers", () => {
 		let action1WasCalled = false;
 		const store = Reflux.createStore({
 			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
 
 			listenables: { action1 },
 
+			getInitialState() {
+				return initialState;
+			},
+
 			onAction1() {
 				action1WasCalled = true;
-				console.log(this);
+				should.equal(Immutable.is(this.cursor().deref(), getCurrentState().get("exerciseStore")), true);
 			}
 		});
 
-		// Goddamn this is annoying...
+		action1.trigger();
+		action1WasCalled.should.be.True;
+	});
+
+	it("should expose a shorthand get methods on handlers", () => {
+		let action1WasCalled = false;
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
+
+			listenables: { action1 },
+
+			getInitialState() {
+				return initialState;
+			},
+
+			onAction1() {
+				action1WasCalled = true;
+				this.get("name").should.eql("Dave");
+			}
+		});
+
+		action1.trigger();
+		action1WasCalled.should.be.True;
+	});
+
+	it("should expose a shorthand 'set' method on handlers which sets a value on the state", () => {
+		let action1WasCalled = false;
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
+
+			listenables: { action1 },
+
+			getInitialState() {
+				return initialState;
+			},
+
+			onAction1() {
+				action1WasCalled = true;
+				this.set("name", "Peter");
+				this.get("name").should.equal("Peter");
+				getCurrentState().get("exerciseStore").get("name").should.equal("Peter");
+			}
+		});
+
+		action1.trigger();
+		action1WasCalled.should.be.True;
+	});
+
+	it("should expose a shorthand 'update' method on handlers which updates the state", () => {
+		let action1WasCalled = false;
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
+
+			listenables: { action1 },
+
+			getInitialState() {
+				return initialState;
+			},
+
+			onAction1() {
+				action1WasCalled = true;
+
+				const newState = { a: 1 };
+
+				this.update(() => Immutable.Map(newState));
+				this.get("a").should.equal(1);
+				getCurrentState().get("exerciseStore").get("a").should.equal(1);
+			}
+		});
 
 		action1.trigger();
 		action1WasCalled.should.be.True;
