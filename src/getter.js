@@ -30,8 +30,8 @@ const inject = function(deps) {
 	return newGetter;
 };
 
-const memoize = function(fn) {
-	console.log(this);
+const memoize = function() {
+	return this;
 };
 
 /**
