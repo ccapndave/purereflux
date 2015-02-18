@@ -76,6 +76,10 @@ describe("getters", () => {
         PureReflux.Getter(function() { }).inject({ nameAndHairLength: getNameAndHairLength, hairColour: 'exerciseStore.hair.colour' }).dependencies.should.eql(['exerciseStore.name', 'exerciseStore.hair.length', 'exerciseStore.hair.colour']);
     });
 
+	it("should allow multiple injects to be chained together", () => {
+		// TODO
+	});
+
     it("should pass parameters to the function", () => {
         PureReflux.Getter((a, b) => {
             a.should.eql(1);
@@ -83,8 +87,15 @@ describe("getters", () => {
         })(1, 2);
     });
 
-    // TODO: Arrays don't seem to be working - add tests
+	it("should work with Immutablejs in the state", () => {
+		// TODO
+	});
 
+	it("should work with arrays in the state", () => {
+		// TODO
+	});
+
+    // TODO: Arrays don't seem to be working - add tests
 /*    it("should throw an exception if trying to get a non-existent property", () => {
         (() => PureReflux.Getter('exerciseStore.does.not.exist')).should.throw();
     });*/

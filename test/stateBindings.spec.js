@@ -1,6 +1,8 @@
 import should from 'should'
 import Reflux from 'reflux'
 
+import Immutable from 'immutable'
+
 import * as PureReflux from '../index'
 
 let initialState, store, getHairColour, stateBindings;
@@ -35,13 +37,13 @@ beforeEach(() => {
 
 describe("stateBindings", () => {
 
-    it("should have the correct initial state", () => {
-        stateBindings.getInitialState().should.eql({
-            name: "Dave",
-            hairLengthAndColour: "I have short black hair",
-            hairColour: "black"
-        });
-    });
+	it("should have the correct initial state (Immutable.js version of input)", () => {
+		Immutable.is(stateBindings.getInitialState(), Immutable.fromJS({
+			name: "Dave",
+			hairLengthAndColour: "I have short black hair",
+			hairColour: "black"
+		})).should.be.True;
+	});
 
     it("should call setState when a path updates", () => {
         stateBindings.componentDidMount();
@@ -49,7 +51,8 @@ describe("stateBindings", () => {
         let stateWasChanged = false;
 
         stateBindings.setState = function(state) {
-            state.should.eql({
+			// Convert the Immutable.js structure to an object in order to compare it
+            state.toObject().should.eql({
                 name: "John"
             });
             stateWasChanged = true;
@@ -66,7 +69,8 @@ describe("stateBindings", () => {
         let stateWasChanged = false;
 
         stateBindings.setState = (state) => {
-            state.should.eql({
+			// Convert the Immutable.js structure to an object in order to compare it
+            state.toObject().should.eql({
                 hairColour: 'white',
                 hairLengthAndColour: 'I have short white hair'
             });
@@ -93,5 +97,42 @@ describe("stateBindings", () => {
 
         stateWasChanged.should.be.False
     });
+
+	it("should work with Immutable.js structures in the state", () => {
+		initialState = Immutable.fromJS(initialState);
+		store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('immutableStore') ],
+			getInitialState() {
+				return initialState;
+			}
+		});
+		stateBindings = PureReflux.stateBindings({
+			hair: 'immutableStore.hair'
+		});
+
+		Immutable.is(stateBindings.getInitialState(), Immutable.fromJS({hair: initialState.get("hair")})).should.be.True;
+	});
+
+	it("should not turn Immutable.js objects into real objects in setState", () => {
+		stateBindings = PureReflux.stateBindings({
+			name: 'exerciseStore.name',
+			hair: 'exerciseStore.hair'
+		});
+
+		stateBindings.componentDidMount();
+
+		let stateWasChanged = false;
+
+		stateBindings.setState = (state) => {
+			stateWasChanged = true;
+
+			// Check state is immutable
+			// TODO: How to check if something is an Immutable.js structure?
+		};
+
+		PureReflux.getState().reference(["exerciseStore", "hair"]).cursor().update(() => "white");
+
+		stateWasChanged.should.be.True
+	});
 
 });

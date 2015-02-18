@@ -14,7 +14,7 @@ const stateBindings = function(bindingsObj) {
 
 	return {
 		getInitialState() {
-			return bindings.map(dereference).toJS();
+			return bindings.map(dereference);
 		},
 
 		componentDidMount() {
@@ -37,7 +37,7 @@ const stateBindings = function(bindingsObj) {
 					// I want to get a map of stateProperties to values to pass to setState
 					const newStates = stateProperties.reduce((acc, stateProperty) => {
 						return acc.set(stateProperty, dereference(bindings.get(stateProperty)))
-					}, Immutable.Map()).toJS();
+					}, Immutable.Map());
 
 					this.setState(newStates);
 				});

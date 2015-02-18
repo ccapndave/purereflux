@@ -15,7 +15,7 @@ const inject = function(deps) {
 	// I want to return a new function that when called first retrieves the dependencies, then calls the original function
 	// with those dependencies as its context.
 	let newGetter = function() {
-		let context = deps.map(dereference).toJS();
+		let context = deps.map(dereference).toObject();
 		return getter.apply(context, arguments);
 	};
 
