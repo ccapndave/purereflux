@@ -14,7 +14,7 @@ const stateBindings = function(bindingsObj) {
 
 	return {
 		getInitialState() {
-			return bindings.map(dereference);
+			return bindings.map(dereference).toObject();
 		},
 
 		componentDidMount() {
@@ -39,7 +39,8 @@ const stateBindings = function(bindingsObj) {
 						return acc.set(stateProperty, dereference(bindings.get(stateProperty)))
 					}, Immutable.Map());
 
-					this.setState(newStates);
+					// React needs to the top level to be an object
+					this.setState(newStates.toObject());
 				});
 			}).toList();
 		},
