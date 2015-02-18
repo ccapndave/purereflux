@@ -80,14 +80,23 @@ describe("getters", () => {
 		// TODO
 	});
 
-    it("should pass parameters to the function", () => {
-        PureReflux.Getter((a, b) => {
-            a.should.eql(1);
-            b.should.eql(2);
-        })(1, 2);
-    });
+	it("should return a new callable getter if called with arguments", () => {
+		let functionWasRun = false;
+		const newGetter = PureReflux.Getter((a, b) => {
+			functionWasRun = true;
 
-	it("should work with Immutablejs in the state", () => {
+			a.should.eql(1);
+			b.should.eql(2);
+		})(1, 2);
+
+		should.exist(newGetter);
+		newGetter.isPureFluxGetter.should.be.True
+
+		newGetter();
+		functionWasRun.should.be.True
+	});
+	
+	it("should work with Immutablejs structures as data", () => {
 		// TODO
 	});
 

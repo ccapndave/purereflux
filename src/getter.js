@@ -2,6 +2,54 @@ import Immutable from 'immutable'
 import { dereference } from './reference'
 
 /**
+ * A Getter returns a function that can be invoked to get a value.  There are two forms of the Getter function:
+ *
+ * Getter(path): this returns a function that gets the value at path
+ * Getter(function() { return value; }): this returns a function that gets the value returned by the function.
+ *
+ * @returns {Function}
+ * @constructor
+ */
+const Getter = function(fn) {
+	let resultFn;
+
+	if (arguments.length !== 1)
+		throw new Error("A Getter takes exactly one argument.");
+
+	if (typeof(fn) === "string") {
+		// If we are passed a single path then return a function that simply dereferences it
+		resultFn = (() => dereference(fn));
+
+		// Set the path as a dependency
+		resultFn.dependencies = [ fn ];
+	} else if (typeof(fn) === "function") {
+		// Otherwise we just want to call the function that was passed in, passing on any arguments and parent context (which can be changed by .inject).
+		resultFn = (function() {
+			const args = Array.from(arguments);
+			if (args.length > 0) {
+				// If arguments are passed in we need to return a new getter pre-bound to the given arguments
+				return Getter(fn.bind(this, ...args));
+			} else {
+				return fn.apply(this);
+			}
+		});
+	} else {
+		throw new Error("A Getter must take a path string or a function as its only argument.");
+	}
+
+	// This lets us identify something as a Getter
+	resultFn.isPureFluxGetter = true;
+
+	// This is the chainable injection function
+	resultFn.inject = inject;
+
+	// This is the chainable memoize function
+	resultFn.memoize = memoize;
+
+	return resultFn;
+};
+
+/**
  * This can be chained onto a Getter in order to provide dependency injection into its context.
  *
  * @param deps An object containing a map of injection points to paths (string) and Getters
@@ -32,48 +80,6 @@ const inject = function(deps) {
 
 const memoize = function() {
 	return this;
-};
-
-/**
- * A Getter returns a function that can be invoked to get a value.  There are two forms of the Getter function:
- *
- * Getter(path): this returns a function that gets the value at path
- * Getter(function() { return value; }): this returns a function that gets the value returned by the function.
- *
- * @returns {Function}
- * @constructor
- */
-const Getter = function(fn) {
-	let resultFn;
-
-	if (arguments.length !== 1)
-		throw new Error("A Getter takes exactly one argument.");
-
-	if (typeof(fn) === "string") {
-		// If we are passed a single path then return a function that simply dereferences it
-		resultFn = (() => dereference(fn));
-
-		// Set the path as a dependency
-		resultFn.dependencies = [ fn ];
-	} else if (typeof(fn) === "function") {
-		// Otherwise we just want to call the function that was passed in, passing on any arguments and parent context (which can be changed by .inject).
-		resultFn = (function() {
-			return fn.apply(this, arguments);
-		});
-	} else {
-		throw new Error("A Getter must take a path string or a function as its only argument.");
-	}
-
-	// This lets us identify something as a Getter
-	resultFn.isPureFluxGetter = true;
-
-	// This is the chainable injection function
-	resultFn.inject = inject;
-
-	// This is the chainable memoize function
-	resultFn.memoize = memoize;
-
-	return resultFn;
 };
 
 export default Getter
