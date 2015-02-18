@@ -95,7 +95,7 @@ describe("getters", () => {
 		newGetter();
 		functionWasRun.should.be.True
 	});
-	
+
 	it("should work with Immutablejs structures as data", () => {
 		// TODO
 	});

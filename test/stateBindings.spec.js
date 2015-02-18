@@ -28,16 +28,17 @@ beforeEach(() => {
 
     getHairColour = PureReflux.Getter(function() { return this.colour; }).inject({ colour: 'exerciseStore.hair.colour' });
 
-    stateBindings = PureReflux.stateBindings({
+    stateBindings = PureReflux.stateBindings(() => ({
         name: 'exerciseStore.name',
         hairLengthAndColour: PureReflux.Getter(function() { return `I have ${this.length} ${this.colour} hair`; }).inject({ length: 'exerciseStore.hair.length', colour: getHairColour }),
         hairColour: getHairColour
-    });
+    }));
 });
 
 describe("stateBindings", () => {
 
 	it("should have the correct initial state (Immutable.js version of input)", () => {
+		stateBindings.getInitialState();
 		stateBindings.getInitialState().should.eql({
 			name: "Dave",
 			hairLengthAndColour: "I have short black hair",
@@ -46,6 +47,7 @@ describe("stateBindings", () => {
 	});
 
     it("should call setState when a path updates", () => {
+		stateBindings.getInitialState();
         stateBindings.componentDidMount();
 
         let stateWasChanged = false;
@@ -63,6 +65,7 @@ describe("stateBindings", () => {
     });
 
     it("should call multiple setStates when a path updates", () => {
+		stateBindings.getInitialState();
         stateBindings.componentDidMount();
 
         let stateWasChanged = false;
@@ -82,6 +85,7 @@ describe("stateBindings", () => {
     });
 
     it("should remove listeners when the component is unmounted", () => {
+		stateBindings.getInitialState();
         stateBindings.componentDidMount();
 
         let stateWasChanged = false;
@@ -105,20 +109,23 @@ describe("stateBindings", () => {
 				return initialState;
 			}
 		});
-		stateBindings = PureReflux.stateBindings({
+		stateBindings = PureReflux.stateBindings(() => ({
 			hair: 'immutableStore.hair'
+		}));
 
-		});
+		stateBindings.getInitialState();
+		stateBindings.componentDidMount();
 
 		stateBindings.getInitialState().should.eql({ hair: initialState.get("hair") });
 	});
 
 	it("should not turn Immutable.js objects into real objects in setState", () => {
-		stateBindings = PureReflux.stateBindings({
+		stateBindings = PureReflux.stateBindings(() => ({
 			name: 'exerciseStore.name',
 			hair: 'exerciseStore.hair'
-		});
+		}));
 
+		stateBindings.getInitialState();
 		stateBindings.componentDidMount();
 
 		let stateWasChanged = false;

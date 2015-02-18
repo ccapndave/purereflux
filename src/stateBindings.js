@@ -4,16 +4,22 @@ import { dereference, reference } from './reference'
 /**
  * A React mixin to link state paths or Getters to a React state.
  *
- * @param bindingsObj
+ * @param bindingsFn
  * @returns {{getInitialState: Function, componentDidMount: Function, componentWillUnmount: Function}}
  */
-const stateBindings = function(bindingsObj) {
-	let unobservers = Immutable.List();
+const stateBindings = function(bindingsFn) {
+	if (typeof(bindingsFn) != "function")
+		throw new Error("stateBindings needs to take a single function which returns the bindings");
 
-	const bindings = Immutable.Map(bindingsObj);
+	let bindings, unobservers = Immutable.List();
 
 	return {
 		getInitialState() {
+			// Call the binding function to get the bindings (getInitialState should only be called once but put an explicit
+			// test just in case)
+			if (!bindings) bindings = Immutable.Map(bindingsFn());
+
+			// Calculate and return the bindings
 			return bindings.map(dereference).toObject();
 		},
 
