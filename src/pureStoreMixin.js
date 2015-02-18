@@ -24,6 +24,13 @@ const PureStoreMixin = function(storeKey) {
 		},
 
 		/**
+		 * Reset the store data to its initial state
+		 */
+		resetToInitialState() {
+			this.update(Immutable.fromJS(this.getInitialState()));
+		},
+
+		/**
 		 * A helper method for setting a value on the default cursor.  Equivalent to this.cursor().set(...)
 		 *
 		 * @param key
