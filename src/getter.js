@@ -11,7 +11,7 @@ import { dereference } from './reference'
  * @constructor
  */
 const Getter = function(fn) {
-	let resultFn;
+	let resultFn, dependencies = [];
 
 	if (arguments.length !== 1)
 		throw new Error("A Getter takes exactly one argument.");
@@ -21,7 +21,7 @@ const Getter = function(fn) {
 		resultFn = (() => dereference(fn));
 
 		// Set the path as a dependency
-		resultFn.dependencies = [ fn ];
+		dependencies = [ fn ];
 	} else if (typeof(fn) === "function") {
 		// Otherwise we just want to call the function that was passed in, passing on any arguments and parent context (which can be changed by .inject).
 		resultFn = (function() {
@@ -36,6 +36,9 @@ const Getter = function(fn) {
 	} else {
 		throw new Error("A Getter must take a path string or a function as its only argument.");
 	}
+
+	// Set the dependencies
+	resultFn.dependencies = dependencies;
 
 	// This lets us identify something as a Getter
 	resultFn.isPureFluxGetter = true;
