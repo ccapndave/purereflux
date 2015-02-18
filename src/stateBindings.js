@@ -16,8 +16,8 @@ const stateBindings = function(bindingsFn) {
 	return {
 		getInitialState() {
 			// Call the binding function to get the bindings (getInitialState should only be called once but put an explicit
-			// test just in case)
-			if (!bindings) bindings = Immutable.Map(bindingsFn());
+			// test just in case).  Call the function in the context of the component.
+			if (!bindings) bindings = Immutable.Map(bindingsFn.call(this));
 
 			// Calculate and return the bindings
 			return bindings.map(dereference).toObject();
