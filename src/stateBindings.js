@@ -52,7 +52,11 @@ const stateBindings = function(bindingsFn) {
 		},
 
 		componentWillUnmount() {
+			// Stop observing keypaths
 			unobservers.forEach(unobserver => unobserver());
+
+			// Clear the bindings
+			bindings = null;
 		}
 	};
 
