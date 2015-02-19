@@ -42,12 +42,12 @@ const PureStoreMixin = function(storeKey) {
 		},
 
 		/**
-		 * A helper method for getting a value from the default cursor.  Equivalent to this.cursor().get(...)
+		 * A helper method for getting a value from the default cursor.  Equivalent to this.cursor().get(...).deref()
 		 * @param key
 		 * @returns {*}
 		 */
 		get(key) {
-			return this.cursor().get(key);
+			return this.cursor().get(key).deref();
 		},
 
 		/**
