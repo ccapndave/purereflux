@@ -42,13 +42,15 @@ const PureStoreMixin = function(storeKey) {
 		},
 
 		/**
-		 * A helper method for getting a value from the default cursor.  Equivalent to this.cursor().get(...).deref()
+		 * A helper method for getting a value from the default cursor.  Equivalent to this.cursor().get(...)
+		 *
 		 * @param key
 		 * @returns {*}
 		 */
 		get(key) {
-			// TODO: not sure what is going on here - in the tests deref() fails, in the app it needs it...
-			return this.cursor().get(key)/*.deref()*/;
+			// In the event of this returning another cursor we want to dereference it, otherwise it is a real value
+			const result = this.cursor().get(key);
+			return result.deref ? result.deref() : result;
 		},
 
 		/**
