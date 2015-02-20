@@ -1,4 +1,3 @@
-/*
 import should from 'should'
 import Reflux from 'reflux'
 
@@ -27,14 +26,22 @@ beforeEach(() => {
         }
     });
 
-    getHairColour = PureReflux.Getter(function() { return this.colour; }).inject({ colour: 'exerciseStore.hair.colour' });
+    //getHairColour = PureReflux.Getter(function() { return this.colour; }).inject({ colour: 'exerciseStore.hair.colour' });
+	getHairColour = function f() {
+		const [colour] = PureReflux.provide(f, ['exerciseStore.hair.colour']);
+		return colour;
+	};
 
     stateBindings = PureReflux.stateBindings(() => ({
         name: 'exerciseStore.name',
-        hairLengthAndColour: PureReflux.Getter(function() { return `I have ${this.length} ${this.colour} hair`; }).inject({ length: 'exerciseStore.hair.length', colour: getHairColour }),
-        hairColour: getHairColour
+		hairLengthAndColour: function f() {
+			const [length, colour] = PureReflux.provide(f, ['exerciseStore.hair.length', getHairColour]);
+			return `I have ${length} ${colour} hair`;
+		},
+		hairColour: getHairColour
     }));
 });
+
 
 describe("stateBindings", () => {
 
@@ -64,6 +71,7 @@ describe("stateBindings", () => {
 
         stateWasChanged.should.be.True
     });
+
 
     it("should call multiple setStates when a path updates", () => {
 		stateBindings.getInitialState();
@@ -144,4 +152,3 @@ describe("stateBindings", () => {
 	});
 
 });
-*/

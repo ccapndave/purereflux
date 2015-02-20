@@ -2,7 +2,7 @@ import should from 'should'
 import Reflux from 'reflux'
 import { provide, bindParams, PureStoreMixin } from '../index'
 
-let store, fn1, fn2, fn3, fn4;
+let store, fn1, fn2, fn3, fn4, fn5;
 
 describe("getter functions", () => {
 	beforeEach(() => {
@@ -32,7 +32,12 @@ describe("getter functions", () => {
 		fn4 = function(arg1, arg2) {
 			const deps = provide(fn4, ["provideStore.c", fn2, fn1]);
 			return [ arg1, arg2 ];
-		}
+		};
+
+		fn5 = function(arg1, arg2) {
+			const deps = provide(fn5, [bindParams(fn4, "nested1", "nested2")]);
+			return [ arg1, arg2, deps ];
+		};
 
 	});
 
@@ -53,20 +58,34 @@ describe("getter functions", () => {
 		fn2.dependencies.toJS().should.eql(["provideStore.b", "provideStore.a"]);
 		fn3.dependencies.toJS().should.eql(["provideStore.c", "provideStore.b", "provideStore.a"]);
 
-		fn1().toJS().should.eql([1]);
-		fn2().toJS().should.eql([2, [1]]);
-		fn3().toJS().should.eql([3, [2, [1]], [1]]);
+		fn1().should.eql([1]);
+		fn2().should.eql([2, [1]]);
+		fn3().should.eql([3, [2, [1]], [1]]);
 	});
 
-	it("should work with bound arguments", () => {
+	it("should work with bindParams", () => {
 		var newFunc = bindParams(fn4, "hello", "dave");
 
 		var result = newFunc();
 
-		console.dir(newFunc.dependencies);
-
 		result.should.eql([ "hello", "dave" ]);
 		newFunc.dependencies.toJS().should.eql(["provideStore.c", "provideStore.b", "provideStore.a"]);
+	});
+
+	it("should work with nested bindParams", () => {
+		var newFunc = bindParams(fn5, "top1", "top2");
+
+		var result = newFunc();
+
+		result.should.eql([ "top1", "top2", [ "nested1", "nested2" ]]);
+	});
+
+	it("should accept a non-array argument if there is just a single dependency", () => {
+		const singleDepFn = function f() {
+			return provide(fn4, "provideStore.a");
+		};
+
+		singleDepFn().should.eql(1);
 	});
 
 });
