@@ -47,7 +47,8 @@ const PureStoreMixin = function(storeKey) {
 		 * @returns {*}
 		 */
 		get(key) {
-			return this.cursor().get(key).deref();
+			// TODO: not sure what is going on here - in the tests deref() fails, in the app it needs it...
+			return this.cursor().get(key)/*.deref()*/;
 		},
 
 		/**

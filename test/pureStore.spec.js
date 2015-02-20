@@ -248,18 +248,6 @@ describe("store handlers", () => {
 		action1WasCalled.should.be.True;
 	});
 
-	it("should have a working get() shortcut in handlers", () => {
-		// TODO
-	});
-
-	it("should have a working set() shortcut in handlers", () => {
-		// TODO
-	});
-
-	it("should have a working update() shortcut in handlers", () => {
-		// TODO
-	});
-
 	it("should have a working resetToInitialState() shortcut in handlers", () => {
 		// TODO
 	});
