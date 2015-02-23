@@ -2,7 +2,7 @@
   "name": "purereflux",
   "version": "0.0.1",
   "description": "Pure functional extensions to Reflux",
-  "main": "index.js",
+  "main": "dist/purereflux.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -28,6 +28,10 @@
     "reflux": "^0.2.5"
   },
   "devDependencies": {
+    "gulp": "^3.8.11",
+    "gulp-babel": "^4.0.0",
+    "gulp-concat": "^2.5.2",
+    "gulp-sourcemaps": "^1.3.0",
     "mocha": "^2.1.0",
     "mocha-traceur": "^2.1.0",
     "should": "^5.0.0"
