@@ -4,10 +4,19 @@ var gulp = require('gulp'),
 	concat = require('gulp-concat');
 
 gulp.task('default', function () {
-	return gulp.src(['index.js', 'src/**/*.js'])
-			.pipe(sourcemaps.init())
-			.pipe(babel())
-			.pipe(concat('purereflux.js'))
-			.pipe(sourcemaps.write('.'))
-			.pipe(gulp.dest('dist'));
+	gulp.src(['index.js'])
+		.pipe(sourcemaps.init())
+		.pipe(babel({
+			optional: ["runtime"]
+		}))
+		.pipe(sourcemaps.write('.'))
+		.pipe(gulp.dest('dist'));
+
+	gulp.src(['src/*.js'])
+		.pipe(sourcemaps.init())
+		.pipe(babel({
+			optional: ["runtime"]
+		}))
+		.pipe(sourcemaps.write('.'))
+		.pipe(gulp.dest('dist/src'));
 });

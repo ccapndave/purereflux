@@ -1,4 +1,4 @@
-import { getState } from '../index'
+import { getState } from './appState'
 
 /**
  * Split a path up into an array that can be used with an immstruct cursor
@@ -8,22 +8,11 @@ import { getState } from '../index'
 const keyPathToKeyArray = (keyPath) => keyPath ? keyPath.split(".") : null;
 
 /**
- * Turn a path or Getter into a real value
+ * Turn a path or function into a real value
  *
- * @param pathOrGetter
+ * @param dependency
  * @returns {*}
  */
-/*const dereference = (pathOrGetter) => {
-	if (typeof(pathOrGetter) === "string") {
-		// TODO: This needs to throw an exception if the path doesn't exist
-		return getState().cursor(keyPathToKeyArray(pathOrGetter)).deref();
-	} else if (typeof(pathOrGetter) === "function" && pathOrGetter.isPureFluxGetter) {
-		return pathOrGetter();
-	} else {
-		throw new Error("Illegal argument type for this Getter");
-	}
-};*/
-
 const dereference = (dependency) => {
 	if (typeof(dependency) === "string") {
 		// TODO: This needs to throw an exception if the path doesn't exist
