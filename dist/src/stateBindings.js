@@ -39,10 +39,12 @@ var stateBindings = function stateBindings(bindingsFn) {
 			var pathsMap = bindings.map(function (binding) {
 				return typeof binding === "string" ? [binding] : binding.dependencies;
 			}).reduce(function (acc, dependencies, stateProperty) {
-				dependencies.forEach(function (dependency) {
-					var set = (acc.get(dependency) || Immutable.Set()).add(stateProperty);
-					acc = acc.set(dependency, set);
-				});
+				if (dependencies) {
+					dependencies.forEach(function (dependency) {
+						var set = (acc.get(dependency) || Immutable.Set()).add(stateProperty);
+						acc = acc.set(dependency, set);
+					});
+				}
 				return acc;
 			}, Immutable.Map());
 

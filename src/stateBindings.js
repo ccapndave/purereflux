@@ -29,10 +29,12 @@ const stateBindings = function(bindingsFn) {
 			let pathsMap = bindings
 					.map(binding => typeof(binding) === "string" ? [ binding ] : binding.dependencies)
 					.reduce((acc, dependencies, stateProperty) => {
-						dependencies.forEach(dependency => {
-							let set = (acc.get(dependency) || Immutable.Set()).add(stateProperty);
-							acc = acc.set(dependency, set);
-						});
+						if (dependencies) {
+							dependencies.forEach(dependency => {
+								let set = (acc.get(dependency) || Immutable.Set()).add(stateProperty);
+								acc = acc.set(dependency, set);
+							});
+						}
 						return acc;
 					}, Immutable.Map());
 
