@@ -1,13 +1,6 @@
 import { getState, state } from './appState'
 
 /**
- * Split a path up into an array that can be used with an immstruct cursor
- *
- * @param keyPath
- */
-const keyPathToKeyArray = (keyPath) => keyPath ? keyPath.split(".") : null;
-
-/**
  * Turn a path or function into a real value
  *
  * @param dependency
@@ -28,9 +21,4 @@ const dereference = (dependency) => {
  */
 const reference = (keyPath) => getState().reference(keyPath);
 
-/**
- * Get a cursor for the given keyPath
- */
-const cursor = (keyPath) => getState().cursor(keyPathToKeyArray(keyPath));
-
-export { dereference, reference, cursor }
+export { dereference, reference }

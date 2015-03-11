@@ -108,6 +108,27 @@ describe("stateBindings", () => {
 		stateWasChanged.should.be.True
 	});
 
+	it("should update subpaths of bindings (if appropriate) when a parent path updates", () => {
+		stateBindings.getInitialState();
+		stateBindings.componentDidMount();
+
+		let stateWasChanged = false;
+		stateBindings.setState = (state) => {
+			// Convert the Immutable.js structure to an object in order to compare it
+			state.should.eql({
+				hairColour: 'yellow',
+				hairLengthAndColour: 'I have crewcut yellow hair'
+			});
+			stateWasChanged = true;
+		};
+
+		PureReflux.getState().reference(['store', 'hair']).cursor().update(hair =>
+			hair.merge({ colour: "yellow", length: "crewcut" })
+		);
+
+		stateWasChanged.should.be.True
+	});
+
 	it("should remove listeners when the component is unmounted", () => {
 		stateBindings.getInitialState();
 		stateBindings.componentDidMount();

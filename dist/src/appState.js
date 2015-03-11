@@ -6,6 +6,9 @@ exports.clearState = clearState;
 exports.getState = getState;
 exports.getCurrentState = getCurrentState;
 exports.state = state;
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
 
 var immstruct = _interopRequire(require("immstruct"));
 
@@ -64,7 +67,4 @@ if (typeof window !== "undefined") {
 	window.getCurrentState = getCurrentState;
 	window.state = state;
 }
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
 //# sourceMappingURL=appState.js.map

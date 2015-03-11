@@ -1,18 +1,13 @@
 "use strict";
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
 var _appState = require("./appState");
 
 var getState = _appState.getState;
 var state = _appState.state;
-
-/**
- * Split a path up into an array that can be used with an immstruct cursor
- *
- * @param keyPath
- */
-var keyPathToKeyArray = function (keyPath) {
-  return keyPath ? keyPath.split(".") : null;
-};
 
 /**
  * Turn a path or function into a real value
@@ -37,17 +32,6 @@ var reference = function (keyPath) {
   return getState().reference(keyPath);
 };
 
-/**
- * Get a cursor for the given keyPath
- */
-var cursor = function (keyPath) {
-  return getState().cursor(keyPathToKeyArray(keyPath));
-};
-
 exports.dereference = dereference;
 exports.reference = reference;
-exports.cursor = cursor;
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 //# sourceMappingURL=reference.js.map

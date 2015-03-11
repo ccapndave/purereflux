@@ -6,7 +6,7 @@ import { dereference, reference } from './reference'
  * A React mixin to link state paths or Getters to a React state.
  *
  * @param bindingsFn
- * @returns {{getInitialState: Function, componentWillUnmount: Function}}
+ * @returns {{getInitialState: Function, componentDidMount: Function, componentWillUnmount: Function}}
  */
 const stateBindings = function(bindingsFn) {
 	if (typeof(bindingsFn) != "function")
@@ -15,10 +15,19 @@ const stateBindings = function(bindingsFn) {
 	let listener, bindings, keyPathsToBindingNames, dependencies = Immutable.Map();
 
 	const onSwap = function(newState, oldState, keyPath) {
-		const bindingNames = keyPathsToBindingNames.get(Immutable.List(keyPath));
+		// The keypath comes in as an array so convert it to a List
+		keyPath = Immutable.List(keyPath);
+
+		// A binding is considered to have changed if its keyPath contains the swapped keyPath.
+		// So ['a', 'b', 'c'] would be changed by a change to ['a'], ['a', 'b'] or ['a', 'b', 'c'].
+		// Convert it to a set after the computation as we don't care about duplicates.
+		const bindingNames = keyPathsToBindingNames.filter((names, path) =>
+			Immutable.is(keyPath, path.slice(0, keyPath.size))
+		).toSet().flatten();
 
 		// If there are any bindings that need to change then update the state appropriately
 		if (bindingNames) {
+			//console.log(newState);
 			const newStates = bindingNames.reduce((acc, bindingName) => {
 				return acc.set(bindingName, dereference(bindings.get(bindingName)))
 			}, Immutable.Map());
