@@ -1,10 +1,10 @@
 "use strict";
 
-var _babelHelpers = require("babel-runtime/helpers")["default"];
+var _interopRequire = require("babel-runtime/helpers/interop-require")["default"];
 
-var Immutable = _babelHelpers.interopRequire(require("immutable"));
+var Immutable = _interopRequire(require("immutable"));
 
-var Reflux = _babelHelpers.interopRequire(require("reflux"));
+var Reflux = _interopRequire(require("reflux"));
 
 var reference = require("./reference").reference;
 

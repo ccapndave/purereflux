@@ -1,8 +1,13 @@
 "use strict";
 
-var _babelHelpers = require("babel-runtime/helpers")["default"];
+var _interopRequire = require("babel-runtime/helpers/interop-require")["default"];
 
-var Immutable = _babelHelpers.interopRequire(require("immutable"));
+var Immutable = _interopRequire(require("immutable"));
+
+var _appState = require("./appState");
+
+var getState = _appState.getState;
+var _dependencyTracker = _appState._dependencyTracker;
 
 var _reference = require("./reference");
 
@@ -13,13 +18,57 @@ var reference = _reference.reference;
  * A React mixin to link state paths or Getters to a React state.
  *
  * @param bindingsFn
- * @returns {{getInitialState: Function, componentDidMount: Function, componentWillUnmount: Function}}
+ * @returns {{getInitialState: Function, componentWillUnmount: Function}}
  */
 var stateBindings = function stateBindings(bindingsFn) {
 	if (typeof bindingsFn != "function") throw new Error("stateBindings needs to take a single function which returns the bindings");
 
-	var bindings = undefined,
-	    unobservers = Immutable.List();
+	var listener = undefined,
+	    bindings = undefined,
+	    keyPathsToBindingNames = undefined,
+	    dependencies = Immutable.Map();
+
+	var onSwap = function onSwap(newState, oldState, keyPath) {
+		var bindingNames = keyPathsToBindingNames.get(Immutable.List(keyPath));
+
+		// If there are any bindings that need to change then update the state appropriately
+		if (bindingNames) {
+			var newStates = bindingNames.reduce(function (acc, bindingName) {
+				return acc.set(bindingName, dereference(bindings.get(bindingName)));
+			}, Immutable.Map());
+
+			// React needs to the top level to be an object
+			this.setState(newStates.toObject());
+		}
+	};
+
+	var executeAllBindings = function (bindings) {
+		// Run the bindings
+		var newState = bindings.map(executeBinding).toObject();
+
+		// Now that the bindings have run we will have a new dependencies map, so turn it into something that onSwap can use.
+		// Specifically turn binding name -> dependency keyPaths into dependency keyPaths -> binding names
+		keyPathsToBindingNames = bindings.map(function (binding, bindingName) {
+			return dependencies.get(bindingName);
+		}).reduce(function (acc, dependencies, stateProperty) {
+			if (dependencies) {
+				dependencies.forEach(function (dependency) {
+					var set = (acc.get(dependency) || Immutable.Set()).add(stateProperty);
+					acc = acc.set(dependency, set);
+				});
+			}
+			return acc;
+		}, Immutable.Map());
+
+		return newState;
+	};
+
+	var executeBinding = function (binding, bindingName) {
+		_dependencyTracker.start();
+		var result = dereference(binding);
+		dependencies = dependencies.set(bindingName, _dependencyTracker.end());
+		return result;
+	};
 
 	return {
 		getInitialState: function getInitialState() {
@@ -28,46 +77,17 @@ var stateBindings = function stateBindings(bindingsFn) {
 			if (!bindings) bindings = Immutable.Map(bindingsFn.call(this));
 
 			// Calculate and return the bindings
-			return bindings.map(dereference).toObject();
+			return executeAllBindings(bindings);
 		},
 
 		componentDidMount: function componentDidMount() {
-			var _this = this;
-
-			// This is a slightly confusing algorithm that gathers up the state properties that need to be updated per
-			// path (so that we only need one observer per path).
-			var pathsMap = bindings.map(function (binding) {
-				return typeof binding === "string" ? [binding] : binding.dependencies;
-			}).reduce(function (acc, dependencies, stateProperty) {
-				if (dependencies) {
-					dependencies.forEach(function (dependency) {
-						var set = (acc.get(dependency) || Immutable.Set()).add(stateProperty);
-						acc = acc.set(dependency, set);
-					});
-				}
-				return acc;
-			}, Immutable.Map());
-
-			// Observe each of the keyPaths
-			// TODO: Check references are getting garbage collected (might need to use Reference#destroy() in componentWillUnmount)
-			unobservers = pathsMap.map(function (stateProperties, keyPath) {
-				return reference(keyPath).observe(function () {
-					// I want to get a map of stateProperties to values to pass to setState
-					var newStates = stateProperties.reduce(function (acc, stateProperty) {
-						return acc.set(stateProperty, dereference(bindings.get(stateProperty)));
-					}, Immutable.Map());
-
-					// React needs to the top level to be an object
-					_this.setState(newStates.toObject());
-				});
-			}).toList();
+			listener = onSwap.bind(this);
+			getState().on("swap", listener);
 		},
 
 		componentWillUnmount: function componentWillUnmount() {
 			// Stop observing keypaths
-			unobservers.forEach(function (unobserver) {
-				return unobserver();
-			});
+			getState().removeListener("swap", listener);
 
 			// Clear the bindings
 			bindings = null;

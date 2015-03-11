@@ -1,17 +1,60 @@
 import Immutable from 'immutable'
+import { getState, _dependencyTracker } from './appState'
 import { dereference, reference } from './reference'
 
 /**
  * A React mixin to link state paths or Getters to a React state.
  *
  * @param bindingsFn
- * @returns {{getInitialState: Function, componentDidMount: Function, componentWillUnmount: Function}}
+ * @returns {{getInitialState: Function, componentWillUnmount: Function}}
  */
 const stateBindings = function(bindingsFn) {
 	if (typeof(bindingsFn) != "function")
 		throw new Error("stateBindings needs to take a single function which returns the bindings");
 
-	let bindings, unobservers = Immutable.List();
+	let listener, bindings, keyPathsToBindingNames, dependencies = Immutable.Map();
+
+	const onSwap = function(newState, oldState, keyPath) {
+		const bindingNames = keyPathsToBindingNames.get(Immutable.List(keyPath));
+
+		// If there are any bindings that need to change then update the state appropriately
+		if (bindingNames) {
+			const newStates = bindingNames.reduce((acc, bindingName) => {
+				return acc.set(bindingName, dereference(bindings.get(bindingName)))
+			}, Immutable.Map());
+
+			// React needs to the top level to be an object
+			this.setState(newStates.toObject());
+		}
+	};
+
+	const executeAllBindings = (bindings) => {
+		// Run the bindings
+		const newState = bindings.map(executeBinding).toObject();
+
+		// Now that the bindings have run we will have a new dependencies map, so turn it into something that onSwap can use.
+		// Specifically turn binding name -> dependency keyPaths into dependency keyPaths -> binding names
+		keyPathsToBindingNames = bindings
+			.map((binding, bindingName) => dependencies.get(bindingName))
+			.reduce((acc, dependencies, stateProperty) => {
+				if (dependencies) {
+					dependencies.forEach(dependency => {
+						let set = (acc.get(dependency) || Immutable.Set()).add(stateProperty);
+						acc = acc.set(dependency, set);
+					});
+				}
+				return acc;
+			}, Immutable.Map());
+
+		return newState;
+	};
+
+	const executeBinding = (binding, bindingName) => {
+		_dependencyTracker.start();
+		const result = dereference(binding);
+		dependencies = dependencies.set(bindingName, _dependencyTracker.end());
+		return result;
+	};
 
 	return {
 		getInitialState() {
@@ -20,42 +63,17 @@ const stateBindings = function(bindingsFn) {
 			if (!bindings) bindings = Immutable.Map(bindingsFn.call(this));
 
 			// Calculate and return the bindings
-			return bindings.map(dereference).toObject();
+			return executeAllBindings(bindings);
 		},
 
 		componentDidMount() {
-			// This is a slightly confusing algorithm that gathers up the state properties that need to be updated per
-			// path (so that we only need one observer per path).
-			let pathsMap = bindings
-					.map(binding => typeof(binding) === "string" ? [ binding ] : binding.dependencies)
-					.reduce((acc, dependencies, stateProperty) => {
-						if (dependencies) {
-							dependencies.forEach(dependency => {
-								let set = (acc.get(dependency) || Immutable.Set()).add(stateProperty);
-								acc = acc.set(dependency, set);
-							});
-						}
-						return acc;
-					}, Immutable.Map());
-
-			// Observe each of the keyPaths
-			// TODO: Check references are getting garbage collected (might need to use Reference#destroy() in componentWillUnmount)
-			unobservers = pathsMap.map((stateProperties, keyPath) => {
-				return reference(keyPath).observe(() => {
-					// I want to get a map of stateProperties to values to pass to setState
-					const newStates = stateProperties.reduce((acc, stateProperty) => {
-						return acc.set(stateProperty, dereference(bindings.get(stateProperty)))
-					}, Immutable.Map());
-
-					// React needs to the top level to be an object
-					this.setState(newStates.toObject());
-				});
-			}).toList();
+			listener = onSwap.bind(this);
+			getState().on("swap", listener);
 		},
 
 		componentWillUnmount() {
 			// Stop observing keypaths
-			unobservers.forEach(unobserver => unobserver());
+			getState().removeListener("swap", listener);
 
 			// Clear the bindings
 			bindings = null;

@@ -1,6 +1,9 @@
 "use strict";
 
-var getState = require("./appState").getState;
+var _appState = require("./appState");
+
+var getState = _appState.getState;
+var state = _appState.state;
 
 /**
  * Split a path up into an array that can be used with an immstruct cursor
@@ -18,13 +21,12 @@ var keyPathToKeyArray = function (keyPath) {
  * @returns {*}
  */
 var dereference = function (dependency) {
-  if (typeof dependency === "string") {
-    // TODO: This needs to throw an exception if the path doesn't exist
-    return getState().cursor(keyPathToKeyArray(dependency)).deref();
+  if (Array.isArray(dependency)) {
+    return state(dependency);
   } else if (typeof dependency === "function") {
     return dependency();
   } else {
-    throw new Error("Illegal argument type for dependency: " + dependency);
+    throw new Error("Illegal argument type for dependency (" + typeof dependency + "): " + dependency);
   }
 };
 
@@ -32,7 +34,7 @@ var dereference = function (dependency) {
  * Get a reference cursor for the given keyPath
  */
 var reference = function (keyPath) {
-  return getState().reference(keyPathToKeyArray(keyPath));
+  return getState().reference(keyPath);
 };
 
 /**
