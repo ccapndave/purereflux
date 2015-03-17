@@ -3,7 +3,7 @@ var gulp = require('gulp'),
 	sourcemaps = require('gulp-sourcemaps'),
 	concat = require('gulp-concat');
 
-gulp.task('default', function () {
+gulp.task('default', function() {
 	gulp.src(['index.js'])
 		.pipe(sourcemaps.init())
 		.pipe(babel({
@@ -19,4 +19,8 @@ gulp.task('default', function () {
 		}))
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest('dist/src'));
+});
+
+gulp.task('watch', function() {
+	gulp.watch(['index.js', 'src/*.js'], ['default']);
 });
