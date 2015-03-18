@@ -20,14 +20,15 @@ const stateBindings = function(bindingsFn) {
 
 		// A binding is considered to have changed if its keyPath contains the swapped keyPath.
 		// So ['a', 'b', 'c'] would be changed by a change to ['a'], ['a', 'b'] or ['a', 'b', 'c'].
-		// Convert it to a set after the computation as we don't care about duplicates.
-		const bindingNames = keyPathsToBindingNames.filter((names, path) =>
-			Immutable.is(keyPath, path.slice(0, keyPath.size))
-		).toSet().flatten();
+		// Note that it would also be changed by any deeper change, for example ['a', 'b', 'c', 'd'].
+		// Convert it to a set after the computation since we don't care about duplicates.
+		const bindingNames = keyPathsToBindingNames.filter((names, path) => {
+			const compareLength = Math.min(path.size, keyPath.size);
+			return Immutable.is(keyPath.slice(0, compareLength), path.slice(0, compareLength))
+		}).toSet().flatten();
 
 		// If there are any bindings that need to change then update the state appropriately
-		if (bindingNames) {
-			//console.log(newState);
+		if (bindingNames && bindingNames.size > 0) {
 			const newStates = bindingNames.reduce((acc, bindingName) => {
 				return acc.set(bindingName, dereference(bindings.get(bindingName)))
 			}, Immutable.Map());

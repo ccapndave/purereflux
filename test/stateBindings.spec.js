@@ -129,6 +129,30 @@ describe("stateBindings", () => {
 		stateWasChanged.should.be.True
 	});
 
+	it("should update parent paths of bindings (if appropriate) when a sub path updates", () => {
+		// Create a different binding for this test
+		const newStateBindings = PureReflux.stateBindings(() => ({
+			hair: ['store', 'hair']
+		}));
+
+		newStateBindings.getInitialState();
+		newStateBindings.componentDidMount();
+
+		let stateWasChanged = false;
+		newStateBindings.setState = (state) => {
+			state.should.have.property("hair")
+			state.hair.toJS().should.eql({
+				length: "short",
+				colour: "pink"
+			});
+			stateWasChanged = true;
+		};
+
+		PureReflux.getState().reference(['store', 'hair']).cursor().set('colour', 'pink');
+
+		stateWasChanged.should.be.True
+	});
+
 	it("should remove listeners when the component is unmounted", () => {
 		stateBindings.getInitialState();
 		stateBindings.componentDidMount();
