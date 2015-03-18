@@ -15,11 +15,34 @@ var immstruct = _interopRequire(require("immstruct"));
 var Immutable = _interopRequire(require("immutable"));
 
 // This is the global application state
-var appState = immstruct({});
+var appState = createState(true);
 
 // This is used to track dependencies
 var isTracking = false,
     dependencies = undefined;
+
+function onSwap() {
+	if (typeof localStorage !== "undefined") localStorage.setItem("appState", JSON.stringify(getCurrentState().toJSON()));
+}
+
+// If there is a state in localStorage then use that, otherwise make a fresh one
+function createState(useLocalStorage) {
+	// Remove any swap listeners if they exist
+	if (appState) appState.removeListener("swap", onSwap);
+
+	// Create a state - either a fresh one, or a restoration from localStorage.appState
+	var state = undefined;
+	if (useLocalStorage && typeof localStorage !== "undefined" && localStorage.getItem("appState")) {
+		var storedState = JSON.parse(localStorage.getItem("appState"));
+		state = immstruct(Immutable.fromJS(storedState));
+	} else {
+		state = immstruct({});
+	}
+
+	// Add a swap listener
+	state.on("swap", onSwap);
+	return state;
+}
 
 function clearState() {
 	appState = immstruct({});
@@ -60,9 +83,6 @@ exports._dependencyTracker = _dependencyTracker;
 
 // For debugging in a browser
 if (typeof window !== "undefined") {
-	setInterval(function () {
-		localStorage.setItem("appState", JSON.stringify(getCurrentState().toJSON()));
-	}, 2000);
 	window.getState = getState;
 	window.getCurrentState = getCurrentState;
 	window.state = state;

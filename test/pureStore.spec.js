@@ -47,6 +47,10 @@ describe("stores", () => {
         let state = PureReflux.getCurrentState();
         state.toJS().should.eql({ exerciseStore: initialState });
     });
+
+	xit("shouldn't put initial state into the global state if it already exists", () => {
+
+	});
 });
 
 describe("store handlers", () => {
@@ -248,8 +252,8 @@ describe("store handlers", () => {
 		action1WasCalled.should.be.True;
 	});
 
-	it("should have a working resetToInitialState() shortcut in handlers", () => {
-		// TODO
+	xit("should have a working resetToInitialState() shortcut in handlers", () => {
+
 	});
 
 });

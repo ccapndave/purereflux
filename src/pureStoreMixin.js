@@ -16,18 +16,13 @@ const PureStoreMixin = function(storeKey) {
 			// Construct the object we are going to put in the global state.  We are going to convert the object
 			// to an Immutable.js structure.  Note that even if there are already Immutable.js structures in the
 			// initial state is doesn't matter.  Store it in the global state with a reference cursor under the
-			// storeKey.
-			reference().cursor().set(storeKey, Immutable.fromJS(this.getInitialState()));
+			// storeKey.  Note that if the key already exists then do nothing.
+			if (!reference().cursor().has(storeKey)) {
+				reference().cursor().set(storeKey, Immutable.fromJS(this.getInitialState()));
+			}
 
 			// Create a reference cursor to the state
 			this.cursor = reference(storeKey).cursor;
-		},
-
-		/**
-		 * Reset the store data to its initial state
-		 */
-		resetToInitialState() {
-			this.update(Immutable.fromJS(this.getInitialState()));
 		},
 
 		/**
