@@ -2,7 +2,7 @@ import immstruct from 'immstruct'
 import Immutable from 'immutable'
 
 // This is the global application state
-let appState = createState(true);
+let appState = createState(false);
 
 // This is used to track dependencies
 let isTracking = false, dependencies;

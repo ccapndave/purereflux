@@ -15,7 +15,7 @@ var immstruct = _interopRequire(require("immstruct"));
 var Immutable = _interopRequire(require("immutable"));
 
 // This is the global application state
-var appState = createState(true);
+var appState = createState(false);
 
 // This is used to track dependencies
 var isTracking = false,
