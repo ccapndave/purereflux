@@ -87,6 +87,11 @@ const stateBindings = function(bindingsFn) {
 
 			// Clear the bindings
 			bindings = null;
+		},
+		
+		executeAllStateBindings() {
+			bindings = Immutable.Map(bindingsFn.call(this));
+			this.setState(executeAllBindings(bindings));
 		}
 	};
 

@@ -187,27 +187,12 @@ describe("stateBindings", () => {
 		stateBindings.getInitialState().should.eql({ hair: initialState.get("hair") });
 	});
 
-/*	it("should not turn Immutable.js objects into real objects in setState", () => {
-		stateBindings = PureReflux.stateBindings(() => ({
-			name: 'exerciseStore.name',
-			hair: 'exerciseStore.hair'
-		}));
+	xit("should not turn Immutable.js objects into real objects in setState", () => {
 
-		stateBindings.getInitialState();
-		stateBindings.componentDidMount();
+	});
 
-		let stateWasChanged = false;
+	xit("should be rerun when executeAllStateBindings is called", () => {
 
-		stateBindings.setState = (state) => {
-			stateWasChanged = true;
-
-			// Check state is immutable
-			// TODO: How to check if something is an Immutable.js structure?
-		};
-
-		PureReflux.getState().reference(["exerciseStore", "hair"]).cursor().update(() => "white");
-
-		stateWasChanged.should.be.True
-	});*/
+	});
 
 });
