@@ -27,6 +27,6 @@ describe("the global state", () => {
 		loadedState.get("key1").should.be.instanceOf(Immutable.Map);
 		loadedState.get("key1").get("key1.1").should.be.instanceOf(Immutable.List);
 
-		Immutable.is(origState, loadedState).should.be.True;
+		Immutable.is(origState, loadedState).should.be.true;
 	});
 });

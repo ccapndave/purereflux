@@ -37,14 +37,15 @@ const PureStoreMixin = function(storeKey) {
 		},
 
 		/**
-		 * A helper method for getting a value from the default cursor.  Equivalent to this.cursor().get(...)
+		 * A helper method for getting a value from the default cursor.  It accepts a keypath array
+		 * or a single string.
 		 *
 		 * @param key
 		 * @returns {*}
 		 */
 		get(key) {
-			// In the event of this returning another cursor we want to dereference it, otherwise it is a real value
-			const result = this.cursor().get(key);
+			const keyPath = Array.isArray(key) ? key : [ key ],
+				  result = this.cursor(keyPath);
 			return result.deref ? result.deref() : result;
 		},
 

@@ -1,5 +1,6 @@
 import Reflux from 'reflux'
 import should from 'should'
+import sinon from 'sinon'
 import Immutable from 'immutable'
 import { getCurrentState } from '../src/appState'
 
@@ -18,23 +19,23 @@ describe("stores", () => {
 	beforeEach(() => {
 		PureReflux.clearState();
 
-		const store = Reflux.createStore({
+		Reflux.createStore({
 			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
-			getInitialState() {
-				return initialState;
-			}
+			getInitialState: () => initialState
 		});
 	});
 
 	it("should call the init method on creation if there is one", () => {
-		let didCallInit = false;
-		const initStore = Reflux.createStore({
-			mixins: [ PureReflux.PureStoreMixin('initStore') ],
-			init() {
-				didCallInit = true;
-			}
-		});
-		didCallInit.should.be.True
+		const
+			init = sinon.spy(),
+			initDef = {
+				mixins: [ PureReflux.PureStoreMixin('initStore') ],
+				init
+			};
+
+		Reflux.createStore(initDef);
+
+		init.called.should.be.true;
 	});
 
 	it("should not throw an exception if getInitialState method is missing", () => {
@@ -65,100 +66,83 @@ describe("store handlers", () => {
 	});
 
 	it("should fire on an action registered with listenTo", () => {
-		let actionWasCalled = false;
-		const store = Reflux.createStore({
+		const onAction1 = sinon.spy();
+		Reflux.createStore({
 			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
 
 			init() {
 				this.listenTo(action1, this.onAction1);
 			},
 
-			onAction1() {
-				actionWasCalled = true;
-			}
+			onAction1
 		});
 
 		action1.trigger();
 
-		actionWasCalled.should.be.True;
+		onAction1.called.should.be.true;
 	});
 
 	it("should pass arguments to the handler", () => {
-		const store = Reflux.createStore({
+		const onAction1 = sinon.spy();
+		Reflux.createStore({
 			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
 
 			init() {
 				this.listenTo(action1, this.onAction1);
 			},
 
-			onAction1(a, b, c) {
-				a.should.eql(1);
-				b.should.eql(2);
-				c.should.eql("a");
-			}
+			onAction1
 		});
 
 		action1.trigger(1, 2, "a");
+
+		onAction1.args[0][0].should.eql(1);
+		onAction1.args[0][1].should.eql(2);
+		onAction1.args[0][2].should.eql("a");
 	});
 
 	it("should fire listeners with matching names using listenToMany", () => {
-		let action1WasCalled = false, action2WasCalled = false, action3WasCalled = false;
-		const store = Reflux.createStore({
+		let onAction1 = sinon.spy(), onAction2 = sinon.spy(), onWrongName = sinon.spy();
+		Reflux.createStore({
 			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
 
 			init() {
 				this.listenToMany({ action1, action2, action3 });
 			},
 
-			onAction1() {
-				action1WasCalled = true;
-			},
-
-			onAction2() {
-				action2WasCalled = true;
-			},
-
-			onWrongName() {
-				action3WasCalled = true;
-			}
+			onAction1,
+			onAction2,
+			onWrongName
 		});
 
 		action1.trigger();
 		action2.trigger();
 		action3.trigger();
 
-		action1WasCalled.should.be.True;
-		action2WasCalled.should.be.True;
-		action3WasCalled.should.be.False;
+		onAction1.called.should.be.true;
+		onAction2.called.should.be.true;
+		onWrongName.called.should.be.false;
 	});
 
 	it("should fire listeners with matching names using listenables", () => {
-		let action1WasCalled = false, action2WasCalled = false, action3WasCalled = false;
-		const store = Reflux.createStore({
+		let onAction1 = sinon.spy(), onAction2 = sinon.spy(), onWrongName = sinon.spy();
+		Reflux.createStore({
 			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
 
 			listenables: { action1, action2, action3 },
 
-			onAction1() {
-				action1WasCalled = true;
-			},
-
-			onAction2() {
-				action2WasCalled = true;
-			},
-
-			onWrongName() {
-				action3WasCalled = true;
-			}
+			onAction1,
+			onAction2,
+			onWrongName
 		});
 
 		action1.trigger();
 		action2.trigger();
 		action3.trigger();
 
-		action1WasCalled.should.be.True;
-		action2WasCalled.should.be.True;
-		action3WasCalled.should.be.False;
+		onAction1.called.should.be.true;
+		onAction2.called.should.be.true;
+		onWrongName.called.should.be.false;
 	});
 
 	it("should pass a reference cursor pointing at the store state to handlers", () => {
@@ -179,10 +163,10 @@ describe("store handlers", () => {
 		});
 
 		action1.trigger();
-		action1WasCalled.should.be.True;
+		action1WasCalled.should.be.true;
 	});
 
-	it("should expose a shorthand get methods on handlers", () => {
+	it("should expose a shorthand get methods on handlers that takes a string key", () => {
 		let action1WasCalled = false;
 		const store = Reflux.createStore({
 			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
@@ -196,6 +180,27 @@ describe("store handlers", () => {
 			onAction1() {
 				action1WasCalled = true;
 				this.get("name").should.eql("Dave");
+			}
+		});
+
+		action1.trigger();
+		action1WasCalled.should.be.True;
+	});
+
+	it("should expose a shorthand get methods that takes an array keyPath", () => {
+		let action1WasCalled = false;
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
+
+			listenables: { action1 },
+
+			getInitialState() {
+				return initialState;
+			},
+
+			onAction1() {
+				action1WasCalled = true;
+				this.get(["hair", "length"]).should.eql("short");
 			}
 		});
 
