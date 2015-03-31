@@ -30,14 +30,22 @@ var PureStoreMixin = function PureStoreMixin(storeKey) {
 		},
 
 		/**
-   * A helper method for setting a value on the default cursor.  Equivalent to this.cursor().set(...)
+   * A helper method for setting a value on the default cursor.  For the key it accepts a
+   * keypath array or a single value.
    *
    * @param key
    * @param value
    * @returns {*}
    */
 		set: function set(key, value) {
-			return this.cursor().set(key, value);
+			// Turn single element arrays into a string
+			if (Array.isArray(key) && key.length == 1) key = key[0];
+
+			if (Array.isArray(key)) {
+				return this.cursor(key.slice(0, key.length - 1)).set(key.slice(-1)[0], value);
+			} else {
+				return this.cursor().set(key, value);
+			}
 		},
 
 		/**

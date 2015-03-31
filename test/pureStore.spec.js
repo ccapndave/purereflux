@@ -208,7 +208,7 @@ describe("store handlers", () => {
 		action1WasCalled.should.be.True;
 	});
 
-	it("should expose a shorthand 'set' method on handlers which sets a value on the state", () => {
+	it("should expose a shorthand 'set' method on handlers which takes a string and sets a value on the state", () => {
 		let action1WasCalled = false;
 		const store = Reflux.createStore({
 			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
@@ -224,6 +224,29 @@ describe("store handlers", () => {
 				this.set("name", "Peter");
 				this.get("name").should.equal("Peter");
 				getCurrentState().get("exerciseStore").get("name").should.equal("Peter");
+			}
+		});
+
+		action1.trigger();
+		action1WasCalled.should.be.True;
+	});
+
+	it("should expose a shorthand 'set' method on handlers which takes an array keyPath and sets a value on the state", () => {
+		let action1WasCalled = false;
+		const store = Reflux.createStore({
+			mixins: [ PureReflux.PureStoreMixin('exerciseStore') ],
+
+			listenables: { action1 },
+
+			getInitialState() {
+				return initialState;
+			},
+
+			onAction1() {
+				action1WasCalled = true;
+				this.set(["hair", "length"], "wiggly");
+				this.get(["hair", "length"]).should.equal("wiggly");
+				getCurrentState().get("exerciseStore").get("hair").get("length").should.equal("wiggly");
 			}
 		});
 
@@ -255,10 +278,6 @@ describe("store handlers", () => {
 
 		action1.trigger();
 		action1WasCalled.should.be.True;
-	});
-
-	xit("should have a working resetToInitialState() shortcut in handlers", () => {
-
 	});
 
 });
