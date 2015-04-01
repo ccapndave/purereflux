@@ -42,10 +42,13 @@ var PureStoreMixin = function PureStoreMixin(storeKey) {
 			if (Array.isArray(key) && key.length == 1) key = key[0];
 
 			if (Array.isArray(key)) {
-				return this.cursor(key.slice(0, key.length - 1)).set(key.slice(-1)[0], value);
+				this.cursor(key.slice(0, key.length - 1)).set(key.slice(-1)[0], value);
 			} else {
-				return this.cursor().set(key, value);
+				this.cursor().set(key, value);
 			}
+
+			// Allow set chaining (TODO: this might work anyway by returning the values above... test it)
+			return this;
 		},
 
 		/**
@@ -67,8 +70,16 @@ var PureStoreMixin = function PureStoreMixin(storeKey) {
    * @param fn
    * @returns {*}
    */
-		update: function update(fn) {
-			return this.cursor().update(fn);
+		update: function update(key, fn) {
+			// Accept a single function argument
+			if (typeof key === "function" && fn === undefined) {
+				fn = key;key = [];
+			}
+
+			// Accept a string key
+			if (typeof key === "string") key = [key];
+
+			return this.cursor(key).update(fn);
 		}
 	};
 };

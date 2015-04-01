@@ -254,6 +254,8 @@ describe("store handlers", () => {
 		action1WasCalled.should.be.True;
 	});
 
+	xit("should expose a chainable 'set' method");
+
 	it("should expose a shorthand 'update' method on handlers which updates the state", () => {
 		let action1WasCalled = false;
 		const store = Reflux.createStore({
@@ -280,4 +282,7 @@ describe("store handlers", () => {
 		action1WasCalled.should.be.True;
 	});
 
+	xit("should expose a shorthand 'update' method on handlers which accepts a string key and a function");
+	xit("should expose a shorthand 'update' method on handlers which accepts an array keypath and a function");
+	xit("should expose a chainable 'update' method");
 });
