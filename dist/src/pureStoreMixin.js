@@ -80,6 +80,16 @@ var PureStoreMixin = function PureStoreMixin(storeKey) {
 			if (typeof key === "string") key = [key];
 
 			return this.cursor(key).update(fn);
+		},
+
+		/**
+   * A helper method for merging an object with the default cursor.
+   *
+   * @param obj
+   * @returns {*}
+   */
+		merge: function merge(obj) {
+			return this.cursor().merge(obj);
 		}
 	};
 };

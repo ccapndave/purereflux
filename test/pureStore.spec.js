@@ -285,4 +285,5 @@ describe("store handlers", () => {
 	xit("should expose a shorthand 'update' method on handlers which accepts a string key and a function");
 	xit("should expose a shorthand 'update' method on handlers which accepts an array keypath and a function");
 	xit("should expose a chainable 'update' method");
+	xit("should expose a 'merge' method");
 });
