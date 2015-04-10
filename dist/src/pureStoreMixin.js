@@ -1,16 +1,26 @@
-"use strict";
+'use strict';
 
-var _interopRequire = require("babel-runtime/helpers/interop-require")["default"];
+var _core = require('babel-runtime/core-js')['default'];
 
-var Immutable = _interopRequire(require("immutable"));
+var _interopRequireWildcard = require('babel-runtime/helpers/interop-require-wildcard')['default'];
 
-var Reflux = _interopRequire(require("reflux"));
+_core.Object.defineProperty(exports, '__esModule', {
+	value: true
+});
 
-var reference = require("./reference").reference;
+var _Immutable = require('immutable');
+
+var _Immutable2 = _interopRequireWildcard(_Immutable);
+
+var _Reflux = require('reflux');
+
+var _Reflux2 = _interopRequireWildcard(_Reflux);
+
+var _reference = require('./reference');
 
 var PureStoreMixin = function PureStoreMixin(storeKey) {
 	// Don't allow dots in the storeKey or it will confuse our path system
-	if (storeKey.indexOf(".") >= 0) throw new Error("Store keys cannot contain dots");
+	if (storeKey.indexOf('.') >= 0) throw new Error('Store keys cannot contain dots');
 
 	return {
 		init: function init() {
@@ -21,12 +31,12 @@ var PureStoreMixin = function PureStoreMixin(storeKey) {
 			// to an Immutable.js structure.  Note that even if there are already Immutable.js structures in the
 			// initial state is doesn't matter.  Store it in the global state with a reference cursor under the
 			// storeKey.  Note that if the key already exists then do nothing.
-			if (!reference().cursor().has(storeKey)) {
-				reference().cursor().set(storeKey, Immutable.fromJS(this.getInitialState()));
+			if (!_reference.reference().cursor().has(storeKey)) {
+				_reference.reference().cursor().set(storeKey, _Immutable2['default'].fromJS(this.getInitialState()));
 			}
 
 			// Create a reference cursor to the state
-			this.cursor = reference(storeKey).cursor;
+			this.cursor = _reference.reference(storeKey).cursor;
 		},
 
 		/**
@@ -39,9 +49,9 @@ var PureStoreMixin = function PureStoreMixin(storeKey) {
    */
 		set: function set(key, value) {
 			// Turn single element arrays into a string
-			if (Array.isArray(key) && key.length == 1) key = key[0];
+			if (_core.Array.isArray(key) && key.length == 1) key = key[0];
 
-			if (Array.isArray(key)) {
+			if (_core.Array.isArray(key)) {
 				this.cursor(key.slice(0, key.length - 1)).set(key.slice(-1)[0], value);
 			} else {
 				this.cursor().set(key, value);
@@ -59,7 +69,7 @@ var PureStoreMixin = function PureStoreMixin(storeKey) {
    * @returns {*}
    */
 		get: function get(key) {
-			var keyPath = Array.isArray(key) ? key : [key],
+			var keyPath = _core.Array.isArray(key) ? key : [key],
 			    result = this.cursor(keyPath);
 			return result.deref ? result.deref() : result;
 		},
@@ -72,12 +82,12 @@ var PureStoreMixin = function PureStoreMixin(storeKey) {
    */
 		update: function update(key, fn) {
 			// Accept a single function argument
-			if (typeof key === "function" && fn === undefined) {
+			if (typeof key === 'function' && fn === undefined) {
 				fn = key;key = [];
 			}
 
 			// Accept a string key
-			if (typeof key === "string") key = [key];
+			if (typeof key === 'string') key = [key];
 
 			return this.cursor(key).update(fn);
 		},
@@ -94,5 +104,6 @@ var PureStoreMixin = function PureStoreMixin(storeKey) {
 	};
 };
 
-module.exports = PureStoreMixin;
+exports['default'] = PureStoreMixin;
+module.exports = exports['default'];
 //# sourceMappingURL=pureStoreMixin.js.map

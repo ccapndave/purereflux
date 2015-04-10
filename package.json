@@ -24,7 +24,7 @@
   "homepage": "https://github.com/ccapndave/purereflux",
   "dependencies": {
     "immstruct": "^1.4.0",
-    "immutable": "^3.7.1",
+    "immutable": "^3.7.2",
     "reflux": "^0.2.7"
   },
   "devDependencies": {

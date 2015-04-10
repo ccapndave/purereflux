@@ -1,13 +1,12 @@
 "use strict";
 
-Object.defineProperty(exports, "__esModule", {
+var _core = require("babel-runtime/core-js")["default"];
+
+_core.Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _appState = require("./appState");
-
-var getState = _appState.getState;
-var state = _appState.state;
+var _getState$state = require("./appState");
 
 /**
  * Turn a path or function into a real value
@@ -15,9 +14,9 @@ var state = _appState.state;
  * @param dependency
  * @returns {*}
  */
-var dereference = function (dependency) {
-  if (Array.isArray(dependency)) {
-    return state(dependency);
+var dereference = function dereference(dependency) {
+  if (_core.Array.isArray(dependency)) {
+    return _getState$state.state(dependency);
   } else if (typeof dependency === "function") {
     return dependency();
   } else {
@@ -28,8 +27,8 @@ var dereference = function (dependency) {
 /**
  * Get a reference cursor for the given keyPath
  */
-var reference = function (keyPath) {
-  return getState().reference(keyPath);
+var reference = function reference(keyPath) {
+  return _getState$state.getState().reference(keyPath);
 };
 
 exports.dereference = dereference;
