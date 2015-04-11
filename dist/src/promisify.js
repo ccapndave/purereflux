@@ -33,9 +33,16 @@ var promisify = function promisify(fn) {
 		})(function () {
 			// Run the function, watching any dependencies TODO: it might not be necessary to continuously re-run fn
 			_getState$_dependencyTracker._dependencyTracker.start();
-			var result = fn();
-			var dependencies = _getState$_dependencyTracker._dependencyTracker.end();
 
+			var result = null;
+			try {
+				result = fn();
+			} catch (e) {
+				console.info('Ignoring exception in promisify: ' + e);
+			}
+
+			var dependencies = _getState$_dependencyTracker._dependencyTracker.end();
+			console.log(dependencies.toJS());
 			// If any dependencies are null then watch for the next change
 			if (dependencies.some(function (dependency) {
 				return _dereference.dereference(dependency.toArray()) == null;
