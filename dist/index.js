@@ -22,6 +22,10 @@ var _promisify = require('./src/promisify');
 
 var _promisify2 = _interopRequireWildcard(_promisify);
 
+var _streamify = require('./src/streamify');
+
+var _streamify2 = _interopRequireWildcard(_streamify);
+
 exports.PureStoreMixin = _PureStoreMixin2['default'];
 exports.stateBindings = _stateBindings2['default'];
 exports.clearState = _state$clearState$getCurrentState$getState.clearState;
@@ -29,4 +33,5 @@ exports.getCurrentState = _state$clearState$getCurrentState$getState.getCurrentS
 exports.getState = _state$clearState$getCurrentState$getState.getState;
 exports.state = _state$clearState$getCurrentState$getState.state;
 exports.promisify = _promisify2['default'];
+exports.streamify = _streamify2['default'];
 //# sourceMappingURL=index.js.map

@@ -25,7 +25,8 @@
   "dependencies": {
     "immstruct": "^1.4.0",
     "immutable": "^3.7.2",
-    "reflux": "^0.2.7"
+    "reflux": "^0.2.7",
+    "rx": "^2.5.2"
   },
   "devDependencies": {
     "babel-runtime": "^5.0.12",

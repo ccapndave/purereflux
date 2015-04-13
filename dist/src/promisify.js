@@ -19,6 +19,8 @@ var _dereference = require('./reference');
 var promisify = function promisify(fn) {
 	var timeout = arguments[1] === undefined ? 10 : arguments[1];
 
+	var dependencies = null;
+
 	return new _core.Promise(function (resolve, reject) {
 		var tryToResolve = (function (_tryToResolve) {
 			function tryToResolve() {
@@ -41,9 +43,10 @@ var promisify = function promisify(fn) {
 				console.info('Ignoring exception in promisify: ' + e);
 			}
 
-			var dependencies = _getState$_dependencyTracker._dependencyTracker.end();
-			console.log(dependencies.toJS());
+			dependencies = _getState$_dependencyTracker._dependencyTracker.end();
+
 			// If any dependencies are null then watch for the next change
+			// TODO: this is bad; we only want to do stuff if the particular dependencies have changed
 			if (dependencies.some(function (dependency) {
 				return _dereference.dereference(dependency.toArray()) == null;
 			})) {
@@ -57,7 +60,7 @@ var promisify = function promisify(fn) {
 		// If the timeout is exceeded without the promise resolving then remove the listener and reject the promise
 		setTimeout(function () {
 			_getState$_dependencyTracker.getState().removeListener('swap', tryToResolve);
-			reject();
+			reject('Promisify timed out waiting for dependencies to resolve: ' + dependencies.toString());
 		}, timeout * 1000);
 
 		tryToResolve();

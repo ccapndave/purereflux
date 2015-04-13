@@ -3,6 +3,8 @@ import { getState, _dependencyTracker } from './appState'
 import { dereference } from './reference'
 
 const promisify = function(fn, timeout = 10) {
+	let dependencies = null;
+
 	return new Promise(function(resolve, reject) {
 		const tryToResolve = () => {
 			// Run the function, watching any dependencies TODO: it might not be necessary to continuously re-run fn
@@ -15,9 +17,10 @@ const promisify = function(fn, timeout = 10) {
 				console.info(`Ignoring exception in promisify: ${e}`);
 			}
 
-			const dependencies = _dependencyTracker.end();
+			dependencies = _dependencyTracker.end();
 
 			// If any dependencies are null then watch for the next change
+			// TODO: this is bad; we only want to do stuff if the particular dependencies have changed
 			if (dependencies.some(dependency => dereference(dependency.toArray()) == null)) {
 				getState().once("swap", tryToResolve);
 			} else {
@@ -29,7 +32,7 @@ const promisify = function(fn, timeout = 10) {
 		// If the timeout is exceeded without the promise resolving then remove the listener and reject the promise
 		setTimeout(() => {
 			getState().removeListener("swap", tryToResolve);
-			reject();
+			reject("Promisify timed out waiting for dependencies to resolve: " + dependencies.toString());
 		}, timeout * 1000);
 
 		tryToResolve();
