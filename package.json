@@ -33,6 +33,7 @@
     "gulp": "^3.8.11",
     "gulp-babel": "^5.1.0",
     "gulp-concat": "^2.5.2",
+    "gulp-notify": "^2.2.0",
     "gulp-sourcemaps": "^1.5.1",
     "karma": "^0.12.31",
     "karma-babel-preprocessor": "^5.0.1",

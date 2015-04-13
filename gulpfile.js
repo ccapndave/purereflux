@@ -1,6 +1,7 @@
 var gulp = require('gulp'),
 	babel = require('gulp-babel'),
 	sourcemaps = require('gulp-sourcemaps'),
+	notify = require('gulp-notify'),
 	concat = require('gulp-concat');
 
 gulp.task('default', function() {
@@ -9,6 +10,9 @@ gulp.task('default', function() {
 		.pipe(babel({
 			optional: ["runtime"]
 		}))
+		.on("error", notify.onError(function(error) {
+			return error.message;
+		}))
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest('dist'));
 
@@ -16,6 +20,9 @@ gulp.task('default', function() {
 		.pipe(sourcemaps.init())
 		.pipe(babel({
 			optional: ["runtime"]
+		}))
+		.on("error", notify.onError(function(error) {
+			return error.message;
 		}))
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest('dist/src'));
