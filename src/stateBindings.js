@@ -28,7 +28,7 @@ const stateBindings = function(bindingsFn) {
 		}).toSet().flatten();
 
 		// If there are any bindings that need to change then update the state appropriately
-		if (bindingNames && bindingNames.size > 0) {
+		if (bindings && bindingNames && bindingNames.size > 0) {
 			const newStates = bindingNames.reduce((acc, bindingName) => {
 				return acc.set(bindingName, dereference(bindings.get(bindingName)))
 			}, Immutable.Map());
