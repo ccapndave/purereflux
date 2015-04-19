@@ -68,7 +68,9 @@ var PureStoreMixin = function PureStoreMixin(storeKey) {
    * @param key
    * @returns {*}
    */
-		get: function get(key) {
+		get: function get() {
+			var key = arguments[0] === undefined ? [] : arguments[0];
+
 			var keyPath = _core.Array.isArray(key) ? key : [key],
 			    result = this.cursor(keyPath);
 			return result.deref ? result.deref() : result;

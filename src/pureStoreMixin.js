@@ -54,7 +54,7 @@ const PureStoreMixin = function(storeKey) {
 		 * @param key
 		 * @returns {*}
 		 */
-		get(key) {
+		get(key = []) {
 			const keyPath = Array.isArray(key) ? key : [ key ],
 				  result = this.cursor(keyPath);
 			return result.deref ? result.deref() : result;
