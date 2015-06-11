@@ -1,8 +1,7 @@
 var gulp = require('gulp'),
 	babel = require('gulp-babel'),
 	sourcemaps = require('gulp-sourcemaps'),
-	notify = require('gulp-notify'),
-	concat = require('gulp-concat');
+	notify = require('gulp-notify');
 
 gulp.task('default', function() {
 	gulp.src(['index.js'])
