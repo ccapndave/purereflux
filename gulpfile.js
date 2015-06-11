@@ -9,9 +9,7 @@ gulp.task('default', function() {
 		.pipe(babel({
 			optional: ["runtime"]
 		}))
-		.on("error", notify.onError(function(error) {
-			return error.message;
-		}))
+		.on("error", notify.onError('<%= error.message %>'))
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest('dist'));
 
@@ -20,9 +18,7 @@ gulp.task('default', function() {
 		.pipe(babel({
 			optional: ["runtime"]
 		}))
-		.on("error", notify.onError(function(error) {
-			return error.message;
-		}))
+		.on("error", notify.onError('<%= error.message %>'))
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest('dist/src'));
 });
