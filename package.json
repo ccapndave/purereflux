@@ -4,7 +4,7 @@
   "description": "Pure functional extensions to Reflux",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require babelhook"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/ccapndave/purereflux",
   "dependencies": {
+    "babel": "^5.5.6",
     "immstruct": "^1.4.0",
     "immutable": "^3.7.2",
     "reflux": "^0.2.7",
